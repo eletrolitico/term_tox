@@ -1,84 +1,67 @@
 #include <iostream>
-#include <tox/tox.h>
 #include <ncurses.h>
 #include <signal.h>
 #include <string>
 #include <vector>
+#include "menu.h"
 
-const std::vector<std::string> options = {"Add", "Del", "Contact", "Accept", "Help"};
-
-size_t UpdateMove(int move, size_t chosen)
+void StartNCurses()
 {
-    if (move == KEY_BACKSPACE)
-        exit(0);
-
-    switch(move)
-    {
-        case KEY_UP:
-            --chosen; 
-            if (chosen < 0) chosen = 0;
-            break;
-        case KEY_DOWN:
-            ++chosen;
-            if (chosen >= options.size()) chosen = options.size() - 1;
-            break;
-        default:
-            std::cout << "go up or down" << '\n';
-            break;
-    }
-
-    return chosen;
+    //Start
+    initscr();
+    raw();
+    noecho();
+    cbreak();
+    curs_set(0);
 }
 
 int main()
-{
-    // TOX_ERR_NEW err_new;
-    // Tox *tox = tox_new(NULL, &err_new);
-    // if (err_new != TOX_ERR_NEW_OK)
-    // {
-    //     fprintf(stderr, "tox_new failed with error code %d\n", err_new);
-    //     exit(1);
-    // }
-
-    //Start
-    initscr();
-    noecho();
-    cbreak();
+{   
+    StartNCurses();
 
     //Screen size
-    int Width, Height;
-    getmaxyx(stdscr, Height, Width);  
+    int yMax, xMax;
+    getmaxyx(stdscr, yMax, xMax);  
 
     //Window
-    WINDOW* menu = newwin(10, Width-10, Height-10, 5);
-    box(menu, 0, 0);
-    refresh();
-    wrefresh(menu);
-
+    WINDOW* win = newwin(yMax / 2, xMax / 4, yMax / 4, 0);
+    box(win, 0, 0);
+    
     //Arrow key
-    keypad(menu, true);
+    keypad(win, true);
 
-    int move{ 0 };
-    size_t chosen{ 0 };
-
-    while(true)
+    std::vector<ncurses::Menu> menus
     {
-        for (size_t i = 0; i < options.size(); ++i)
+        ncurses::Menu(0, 2, "Options"), // title
+        ncurses::Menu(2, 2, "Add"),
+        ncurses::Menu(4, 2, "Del"),
+        ncurses::Menu(6, 2, "Invite"),
+        ncurses::Menu(8, 2, "Contact")
+    };
+
+    ncurses::MenuBar menu_bar{win, menus};
+
+    size_t selected_menu{1};
+    menu_bar.display(selected_menu);
+
+    while(int ch = wgetch(win))
+    {
+        switch(ch)
         {
-            if (i == chosen)
-                wattron(menu, A_REVERSE);
-            mvwprintw(menu, i + 1, 1, options[i].c_str());
-            wattroff(menu, A_REVERSE);
+            case KEY_UP:
+                if (selected_menu > 1)
+                    --selected_menu;
+            break;
+
+            case KEY_DOWN:
+                if (selected_menu + 1 < menus.size())
+                    ++selected_menu;
+            break;
         }
 
-        move = wgetch(menu);
-        chosen = UpdateMove(move, chosen);
-        
-        //printw("Option chosen: %s", options[chosen].c_str());
+        menu_bar.display(selected_menu);
     }
 
-    printw("Option chosen: %s", options[chosen].c_str());
-    refresh();
     endwin();
 
     return 0;
