@@ -1,75 +1,49 @@
-########################################################################
-####################### Makefile Template ##############################
-########################################################################
-
-# Compiler settings - Can be customized.
 ifeq (, $(shell which 2>/dev/null g++-11))
 	CC = g++
 else
 	CC = g++-11
 endif
 
-CXXFLAGS = -std=c++20 -Wall -I src/include
-CFLAGS +=  -I src/include
-LDFLAGS = -ltoxcore -lncurses -ltinfo -pthread
+CC_FLAGS = -c -g -std=c++20 -Wall -I src/include
+LD_FLAGS = -ltoxcore -lncurses -ltinfo -pthread
 
-# Makefile settings - Can be customized.
-APPNAME = tfg
-EXT = .cpp
-SRCDIR = src
-OBJDIR = obj
+PROJ_NAME = tfg
 
-############## Do not change anything from here downwards! #############
-SRC = $(wildcard $(SRCDIR)/*$(EXT))
-OBJ = $(SRC:$(SRCDIR)/%$(EXT)=$(OBJDIR)/%.o)
-DEP = $(OBJ:$(OBJDIR)/%.o=%.d)
-# UNIX-based OS variables & settings
-RM = rm
-DELOBJ = $(OBJ)
-# Windows OS variables & settings
-DEL = del
-EXE = .exe
-WDELOBJ = $(SRC:$(SRCDIR)/%$(EXT)=$(OBJDIR)\\%.o)
+# .cpp files
+#SOURCES := $(shell find . -name '*.cpp')
+SOURCES := $(wildcard src/**/*.cpp)
+HEADERS := $(wildcard src/**/*.h)
 
-########################################################################
-####################### Targets beginning here #########################
-########################################################################
+SOURCES += $(wildcard src/*.cpp)
+HEADERS += $(wildcard src/*.h)
 
-all: $(APPNAME)
+# Object files
+OBJ=$(addprefix objects/,$(subst .cpp,.o,$(SOURCES:src/%=%)))
 
-# Builds the app
-$(APPNAME): $(OBJ)
-	$(CC) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+# Command used at clean target
+RM = rm -rf
 
-# Creates the dependecy rules
-%.d: $(SRCDIR)/%$(EXT)
-	@$(CPP) $(CFLAGS) $< -MM -MT $(@:%.d=$(OBJDIR)/%.o) >$@
+# Compilation and linking
+all: objFolder $(PROJ_NAME)
+	@ echo 'Done!'
 
-# Includes all .h files
--include $(DEP)
+$(PROJ_NAME): $(OBJ)
+	@ echo 'Building binary using GCC linker: $@'
+	$(CC) $^ -o $@ $(LD_FLAGS)
+	@ echo 'Finished building binary: $@'
+	@ echo ' '
 
-# Building rule for .o files and its .c/.cpp in combination with all .h
-$(OBJDIR)/%.o: $(SRCDIR)/%$(EXT)
-	$(CC) $(CXXFLAGS) -o $@ -c $<
+objects/%.o: ./src/%.cpp
+	@mkdir -p $(dir $@)
+	@ echo 'Building target using GCC compiler: $<'
+	$(CC) $< $(CC_FLAGS) $(LD_FLAGS) -o $@
+	@ echo ' '
 
-################### Cleaning rules for Unix-based OS ###################
-# Cleans complete project
-.PHONY: clean
+objFolder:
+	@ mkdir -p objects
+
 clean:
-	$(RM) $(DELOBJ) $(DEP) $(APPNAME)
+	@ $(RM) ./objects/* $(PROJ_NAME) *~
+	@ rmdir objects
 
-# Cleans only all files with the extension .d
-.PHONY: cleandep
-cleandep:
-	$(RM) $(DEP)
-
-#################### Cleaning rules for Windows OS #####################
-# Cleans complete project
-.PHONY: cleanw
-cleanw:
-	$(DEL) $(WDELOBJ) $(DEP) $(APPNAME)$(EXE)
-
-# Cleans only all files with the extension .d
-.PHONY: cleandepw
-cleandepw:
-	$(DEL) $(DEP)
+.PHONY: all clean
