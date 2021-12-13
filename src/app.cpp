@@ -5,10 +5,12 @@
 #include <vector>
 
 #include "interface/main.h"
+#include "tox_handler.h"
 
 int main()
 {
-    auto iFace = interface::Main::init();
+    auto tHand = new ToxHandler();
+    auto iFace = interface::Main::getInstance(tHand);
 
     while (int ch = getch())
     {
@@ -17,7 +19,8 @@ int main()
         iFace->updateInterface(ch);
     }
 
-    endwin();
+    delete iFace;
+    delete tHand;
 
     return 0;
 }

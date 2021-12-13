@@ -3,21 +3,27 @@
 
 #include <memory>
 #include "interface/menu.h"
+#include "interface/content_window.h"
+
+#include "tox_handler.h"
 
 namespace interface
 {
     class Main
     {
     public:
-        static Main *init();
+        static Main *getInstance(ToxHandler *);
         void updateInterface(int ch);
 
+        ~Main();
+
     private:
-        Main() {}
+        static Main *_main;
+        Main(ToxHandler *);
 
         int yMax, xMax;
         std::unique_ptr<Menu> menu;
-        static Main *_main;
+        std::vector<ContentWindow *> windows;
     };
 
 }

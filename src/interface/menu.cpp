@@ -2,10 +2,9 @@
 
 namespace interface
 {
-    Menu::Menu(int h, int w, int y, int x, std::vector<std::string> menus) : menus(menus), heigh(h), width(w)
+    Menu::Menu(int xMax, int h, std::vector<std::string> menus) : menus(menus), height(h), width(xMax - 2)
     {
-        win = newwin(h, w, y, x);
-        box(win, 0, 0);
+        win = newwin(3, xMax - 2, 1, 1);
         draw();
     }
 
@@ -30,12 +29,14 @@ namespace interface
 
     void Menu::draw()
     {
+        box(win, 0, 0);
+
         for (size_t i = 0; i < menus.size(); ++i)
         {
             if (i == selected)
                 wattr_on(win, A_STANDOUT, NULL);
             if (i == 0)
-                mvwprintw(win, heigh / 2, 2, "%s", menus[0].c_str());
+                mvwprintw(win, height / 2, 2, "%s", menus[0].c_str());
             else
                 wprintw(win, "%s", menus[i].c_str());
             if (i == selected)

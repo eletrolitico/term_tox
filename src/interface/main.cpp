@@ -1,5 +1,7 @@
 #include "interface/main.h"
 
+#include "interface/friends.h"
+
 #include <ncurses.h>
 #include <stdlib.h>
 #include <vector>
@@ -9,11 +11,8 @@ namespace interface
 {
     Main *Main::_main = NULL;
 
-    Main *Main::init()
+    Main::Main(ToxHandler *t_hand)
     {
-        if (_main != NULL)
-            return _main;
-
         //Start
         initscr();
         if (has_colors() == FALSE)
@@ -28,13 +27,14 @@ namespace interface
         cbreak();
         curs_set(0);
 
+        init_pair(1, COLOR_YELLOW, COLOR_BLUE);
+
         keypad(stdscr, TRUE);
 
-        _main = new Main();
-
-        getmaxyx(stdscr, _main->yMax, _main->xMax);
+        getmaxyx(stdscr, this->yMax, this->xMax);
 
         printw("Aperte F1 para sair");
+
         refresh();
 
         std::vector<std::string> menus = {
@@ -44,15 +44,39 @@ namespace interface
             "Contact",
         };
 
-        _main->menu = std::make_unique<Menu>(3, _main->xMax - 2, 1, 1, menus);
+        this->menu = std::make_unique<Menu>(this->xMax, 3, menus);
+
+        ContentWindow::setToxHandler(t_hand);
+
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
+
+        this->windows[0]->draw();
+    }
+
+    Main *Main::getInstance(ToxHandler *t)
+    {
+        if (_main == NULL)
+            _main = new Main(t);
 
         return _main;
     }
 
     void Main::updateInterface(int ch)
     {
-        menu->getSelectedMenu(ch);
-        refresh();
+        int sel = menu->getSelectedMenu(ch);
+
+        this->windows[sel]->draw();
+    }
+
+    Main::~Main()
+    {
+        for (auto e : windows)
+            delete e;
+
+        endwin();
     }
 
 }
