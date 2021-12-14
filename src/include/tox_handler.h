@@ -60,7 +60,13 @@ public:
 
     static const char *connection_enum2text(TOX_CONNECTION conn);
 
+    inline void setUpdateCallback(void (*updateCb)())
+    {
+        this->updateCb = updateCb;
+    }
+
 private:
+    void (*updateCb)();
     void setup_tox();
     void create_tox();
     void init_friends();

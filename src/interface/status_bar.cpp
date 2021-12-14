@@ -2,7 +2,7 @@
 
 namespace interface
 {
-    StatusBar::StatusBar(int a, int b, int c) : ContentWindow(a, b, c)
+    StatusBar::StatusBar(int a, int b, int c) : ContentWindow("", a, b, c)
     {
     }
 

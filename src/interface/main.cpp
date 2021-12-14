@@ -1,6 +1,7 @@
 #include "interface/main.h"
 
 #include "interface/friends.h"
+#include "interface/requests.h"
 
 #include <ncurses.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@ namespace interface
         noecho();
         cbreak();
         curs_set(0);
+        set_escdelay(50);
 
         init_pair(1, COLOR_YELLOW, COLOR_BLUE);
 
@@ -37,25 +39,20 @@ namespace interface
 
         refresh();
 
-        std::vector<std::string> menus = {
-            "Add",
-            "Del",
-            "Invite",
-            "Contact",
-        };
-
-        this->menu = std::make_unique<Menu>(this->xMax, 3, menus);
-
         ContentWindow::setToxHandler(t_hand);
+        ContentWindow::setDims(this->xMax, this->yMax - 8, 8);
 
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
+        this->menu = std::make_unique<Menu>(this->xMax, 3);
 
-        this->windows[0]->draw();
+        this->menu->addWindow(new Friends());
+        this->menu->addWindow(new Requests());
+        this->menu->addWindow(new Friends());
+        this->menu->addWindow(new Friends());
 
-        this->status_bar = new StatusBar(this->xMax, 3, 4);
+        this->menu->draw();
+        this->menu->getWindow(0)->draw();
+
+        this->status_bar = new StatusBar(this->xMax, 4, 4);
         this->status_bar->draw();
     }
 
@@ -69,10 +66,12 @@ namespace interface
 
     void Main::updateInterface(int ch)
     {
-        int sel = menu->getSelectedMenu(ch);
+        auto sel = menu->getSelectedMenu(ch);
 
-        this->windows[sel]->update(ch);
-        this->windows[sel]->draw();
+        this->status_bar->draw();
+
+        sel->update(ch);
+        sel->draw();
     }
 
     Main::~Main()

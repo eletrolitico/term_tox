@@ -4,7 +4,7 @@
 
 namespace interface
 {
-    Friends::Friends(int xMax, int height, int start_y) : ContentWindow(xMax, height, start_y)
+    Friends::Friends() : ContentWindow("Friends")
     {
     }
 
@@ -72,6 +72,7 @@ namespace interface
 
         case '\n':
             if (selected_friend == 0)
+            {
                 if (adding_friend)
                 {
                     if (tox_id_done)
@@ -89,6 +90,7 @@ namespace interface
                     adding_friend = true;
                     curs_set(1);
                 }
+            }
             break;
 
         case KEY_BACKSPACE: // backspace

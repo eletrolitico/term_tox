@@ -9,7 +9,7 @@ namespace interface
     class Friends : public ContentWindow
     {
     public:
-        Friends(int xMax, int height, int start_y);
+        Friends();
         ~Friends() {}
 
         void draw();

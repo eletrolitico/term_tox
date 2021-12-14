@@ -2,13 +2,13 @@
 
 namespace interface
 {
-    Menu::Menu(int xMax, int h, std::vector<std::string> menus) : menus(menus), height(h), width(xMax - 2)
+    Menu::Menu(int xMax, int h) : height(h), width(xMax - 2)
     {
         win = newwin(3, xMax - 2, 1, 1);
         draw();
     }
 
-    int Menu::getSelectedMenu(int ch)
+    ContentWindow *Menu::getSelectedMenu(int ch)
     {
         switch (ch)
         {
@@ -18,31 +18,31 @@ namespace interface
             break;
 
         case KEY_RIGHT:
-            if (selected < menus.size() - 1)
+            if (selected < windows.size() - 1)
                 ++selected;
             break;
         }
 
         draw();
-        return selected;
+        return windows[selected];
     }
 
     void Menu::draw()
     {
         box(win, 0, 0);
 
-        for (size_t i = 0; i < menus.size(); ++i)
+        for (size_t i = 0; i < windows.size(); ++i)
         {
             if (i == selected)
                 wattr_on(win, A_STANDOUT, NULL);
             if (i == 0)
-                mvwprintw(win, height / 2, 2, "%s", menus[0].c_str());
+                mvwprintw(win, height / 2, 2, "%s", windows[0]->getTitle().c_str());
             else
-                wprintw(win, "%s", menus[i].c_str());
+                wprintw(win, "%s", windows[i]->getTitle().c_str());
             if (i == selected)
                 wattr_off(win, A_STANDOUT, NULL);
 
-            if (i < menus.size() - 1)
+            if (i < windows.size() - 1)
                 waddch(win, ' ');
         }
 
