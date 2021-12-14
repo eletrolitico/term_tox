@@ -1,3 +1,5 @@
 /objects
 /tfg
 .vscode
+*.autosave
+*.dia~

@@ -48,12 +48,15 @@ namespace interface
 
         ContentWindow::setToxHandler(t_hand);
 
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
-        this->windows.push_back(new Friends(this->xMax, this->yMax - 4, 4));
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
+        this->windows.push_back(new Friends(this->xMax, this->yMax - 7, 7));
 
         this->windows[0]->draw();
+
+        this->status_bar = new StatusBar(this->xMax, 3, 4);
+        this->status_bar->draw();
     }
 
     Main *Main::getInstance(ToxHandler *t)
@@ -68,6 +71,7 @@ namespace interface
     {
         int sel = menu->getSelectedMenu(ch);
 
+        this->windows[sel]->update(ch);
         this->windows[sel]->draw();
     }
 

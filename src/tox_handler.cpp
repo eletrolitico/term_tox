@@ -44,7 +44,7 @@ Friend *getfriend(uint32_t fid)
     return NULL;
 }
 
-const char *connection_enum2text(TOX_CONNECTION conn)
+const char *ToxHandler::connection_enum2text(TOX_CONNECTION conn)
 {
     switch (conn)
     {
@@ -128,7 +128,7 @@ void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION c
     if (f)
     {
         f->connection = connection_status;
-        printf("* %s is %s\n", f->name, connection_enum2text(connection_status));
+        printf("* %s is %s\n", f->name, ToxHandler::connection_enum2text(connection_status));
     }
 }
 
@@ -148,7 +148,7 @@ void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *messa
 void self_connection_status_cb(Tox *tox, TOX_CONNECTION connection_status, void *user_data)
 {
     self.connection = connection_status;
-    printf("* You are %s\n", connection_enum2text(connection_status));
+    printf("* You are %s\n", ToxHandler::connection_enum2text(connection_status));
 }
 
 const char *log_level[5] = {

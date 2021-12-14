@@ -4,7 +4,7 @@ else
 	CC = g++-11
 endif
 
-CC_FLAGS = -c -g -std=c++20 -Wall -I src/include
+CC_FLAGS = -c -g -std=c++20 -Wall -I src/include -fmodules-ts
 LD_FLAGS = -ltoxcore -lncurses -ltinfo -pthread
 
 PROJ_NAME = tfg

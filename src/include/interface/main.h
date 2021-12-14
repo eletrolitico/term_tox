@@ -3,7 +3,7 @@
 
 #include <memory>
 #include "interface/menu.h"
-#include "interface/content_window.h"
+#include "interface/status_bar.h"
 
 #include "tox_handler.h"
 
@@ -24,6 +24,7 @@ namespace interface
         int yMax, xMax;
         std::unique_ptr<Menu> menu;
         std::vector<ContentWindow *> windows;
+        StatusBar *status_bar;
     };
 
 }

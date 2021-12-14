@@ -14,6 +14,11 @@ namespace interface
 
         void draw();
         void update(int ch);
+
+    private:
+        uint8_t selected_friend = 0;
+        bool adding_friend = false, tox_id_done = false;
+        std::string adding_tox_id = "", adding_message = "";
     };
 }
 #endif

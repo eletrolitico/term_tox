@@ -58,6 +58,8 @@ public:
     uint32_t AcceptRequest(Request);
     uint32_t AddFriend(std::string toxID, std::string msg);
 
+    static const char *connection_enum2text(TOX_CONNECTION conn);
+
 private:
     void setup_tox();
     void create_tox();
