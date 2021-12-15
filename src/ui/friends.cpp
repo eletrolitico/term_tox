@@ -1,10 +1,10 @@
-#include "interface/friends.h"
+#include "ui/friends.h"
 
 #define SPACE_LEFT 20
 
-namespace interface
+namespace ui
 {
-    Friends::Friends() : ContentWindow("Friends")
+    Friends::Friends() : BaseWindow("Friends")
     {
     }
 
@@ -13,7 +13,7 @@ namespace interface
         wclear(win);
         box(win, 0, 0);
 
-        auto friends = t_hand->GetFriends();
+        auto friends = t_hand->get_friends();
 
         if (friends.size() == 0 && !adding_friend)
             mvwprintw(win, 2, SPACE_LEFT, "You have no friends!");
@@ -52,18 +52,17 @@ namespace interface
         case KEY_UP:
             if (!adding_friend)
             {
-
                 if (selected_friend > 0)
                     --selected_friend;
                 else
-                    selected_friend = t_hand->GetFriends().size();
+                    selected_friend = t_hand->get_friends().size();
             }
             break;
 
         case KEY_DOWN:
             if (!adding_friend)
             {
-                if (selected_friend < t_hand->GetFriends().size())
+                if (selected_friend < t_hand->get_friends().size())
                     ++selected_friend;
                 else
                     selected_friend = 0;
@@ -93,6 +92,7 @@ namespace interface
             }
             break;
 
+        case 127:
         case KEY_BACKSPACE: // backspace
             if (tox_id_done)
             {
@@ -116,7 +116,7 @@ namespace interface
             break;
 
         default:
-            if (isprint(ch))
+            if (isprint(ch) && adding_friend)
             {
                 if (tox_id_done)
                     adding_message += (char)ch;

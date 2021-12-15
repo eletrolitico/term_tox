@@ -1,12 +1,12 @@
 #ifndef FRIENDS_H
 #define FRIENDS_H
 
-#include "interface/content_window.h"
+#include "ui/base_window.h"
 
-namespace interface
+namespace ui
 {
 
-    class Friends : public ContentWindow
+    class Friends : public BaseWindow
     {
     public:
         Friends();

@@ -4,30 +4,30 @@
 #include <string>
 #include <vector>
 #include <ncurses.h>
-#include "interface/content_window.h"
+#include "ui/base_window.h"
 
-namespace interface
+namespace ui
 {
     class Menu
     {
     public:
         Menu(int xMax, int h);
-        ContentWindow *getSelectedMenu(int ch);
+        BaseWindow *get_selected_window(int ch);
         void draw();
 
-        inline void addWindow(ContentWindow *win)
+        inline void add_window(BaseWindow *win)
         {
             windows.push_back(win);
         }
 
-        inline ContentWindow *getWindow(size_t i)
+        inline BaseWindow *get_window(size_t i)
         {
             return windows[i];
         }
 
     private:
         WINDOW *win;
-        std::vector<ContentWindow *> windows;
+        std::vector<BaseWindow *> windows;
         uint8_t selected = 0, height, width;
     };
 }

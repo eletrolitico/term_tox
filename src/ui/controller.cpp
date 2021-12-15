@@ -1,18 +1,18 @@
-#include "interface/main.h"
+#include "ui/controller.h"
 
-#include "interface/friends.h"
-#include "interface/requests.h"
+#include "ui/friends.h"
+#include "ui/requests.h"
 
 #include <ncurses.h>
 #include <stdlib.h>
 #include <vector>
 #include <string>
 
-namespace interface
+namespace ui
 {
-    Main *Main::_main = NULL;
+    Controller *Controller::_main = NULL;
 
-    Main::Main(ToxHandler *t_hand)
+    Controller::Controller(ToxHandler *t_hand)
     {
         //Start
         initscr();
@@ -35,38 +35,40 @@ namespace interface
 
         getmaxyx(stdscr, this->yMax, this->xMax);
 
-        printw("Aperte F1 para sair");
+        attr_on(COLOR_PAIR(1), NULL);
+        printw("Aperte F4 para sair");
+        attr_off(COLOR_PAIR(1), NULL);
 
         refresh();
 
-        ContentWindow::setToxHandler(t_hand);
-        ContentWindow::setDims(this->xMax, this->yMax - 8, 8);
+        BaseWindow::setToxHandler(t_hand);
+        BaseWindow::setDims(this->xMax, this->yMax - 8, 8);
 
         this->menu = std::make_unique<Menu>(this->xMax, 3);
 
-        this->menu->addWindow(new Friends());
-        this->menu->addWindow(new Requests());
-        this->menu->addWindow(new Friends());
-        this->menu->addWindow(new Friends());
+        this->menu->add_window(new Friends());
+        this->menu->add_window(new Requests());
+        this->menu->add_window(new Friends());
+        this->menu->add_window(new Friends());
 
         this->menu->draw();
-        this->menu->getWindow(0)->draw();
+        this->menu->get_window(0)->draw();
 
         this->status_bar = new StatusBar(this->xMax, 4, 4);
         this->status_bar->draw();
     }
 
-    Main *Main::getInstance(ToxHandler *t)
+    Controller *Controller::get_instance(ToxHandler *t)
     {
         if (_main == NULL)
-            _main = new Main(t);
+            _main = new Controller(t);
 
         return _main;
     }
 
-    void Main::updateInterface(int ch)
+    void Controller::update(int ch)
     {
-        auto sel = menu->getSelectedMenu(ch);
+        auto sel = menu->get_selected_window(ch);
 
         this->status_bar->draw();
 
@@ -74,7 +76,7 @@ namespace interface
         sel->draw();
     }
 
-    Main::~Main()
+    Controller::~Controller()
     {
         for (auto e : windows)
             delete e;

@@ -1,6 +1,6 @@
-#include "interface/menu.h"
+#include "ui/menu.h"
 
-namespace interface
+namespace ui
 {
     Menu::Menu(int xMax, int h) : height(h), width(xMax - 2)
     {
@@ -8,7 +8,7 @@ namespace interface
         draw();
     }
 
-    ContentWindow *Menu::getSelectedMenu(int ch)
+    BaseWindow *Menu::get_selected_window(int ch)
     {
         switch (ch)
         {
@@ -23,7 +23,6 @@ namespace interface
             break;
         }
 
-        draw();
         return windows[selected];
     }
 
@@ -48,4 +47,4 @@ namespace interface
 
         wrefresh(win);
     }
-} // namespace interface
+} // namespace ui

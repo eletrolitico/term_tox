@@ -343,7 +343,7 @@ void ToxHandler::setup_tox()
     init_friends();
 }
 
-void ToxHandler::SetName(const std::string &str)
+void ToxHandler::set_name(const std::string &str)
 {
     m_name = str;
     tox_self_set_name(mTox, (uint8_t *)str.c_str(), str.size(), NULL);
@@ -351,22 +351,22 @@ void ToxHandler::SetName(const std::string &str)
     tox_self_set_status_message(mTox, (uint8_t *)stsMsg, strlen(stsMsg), NULL);
 }
 
-std::vector<Request> ToxHandler::GetRequests()
+std::vector<Request> ToxHandler::get_requests()
 {
     return mRequests;
 }
 
-std::vector<Friend *> ToxHandler::GetFriends()
+std::vector<Friend *> ToxHandler::get_friends()
 {
     return mFriends;
 }
 
-Friend *ToxHandler::GetFriend(uint32_t fNum)
+Friend *ToxHandler::get_friend(uint32_t fNum)
 {
     return getfriend(fNum);
 }
 
-void ToxHandler::SendMessage(uint32_t fNum, std::string msg)
+void ToxHandler::send_message(uint32_t fNum, const std::string &msg)
 {
     TOX_ERR_FRIEND_SEND_MESSAGE err;
     tox_friend_send_message(mTox, fNum, TOX_MESSAGE_TYPE_NORMAL, (uint8_t *)msg.c_str(), msg.length(), &err);
@@ -376,7 +376,7 @@ void ToxHandler::SendMessage(uint32_t fNum, std::string msg)
     }
 }
 
-uint32_t ToxHandler::AddFriend(std::string toxID, std::string msg)
+uint32_t ToxHandler::add_friend(const std::string &toxID, const std::string &msg)
 {
     const char *tox_id = toxID.c_str();
 
@@ -396,7 +396,7 @@ uint32_t ToxHandler::AddFriend(std::string toxID, std::string msg)
     return friend_num;
 }
 
-uint32_t ToxHandler::AcceptRequest(Request req)
+uint32_t ToxHandler::accept_request(Request req)
 {
     TOX_ERR_FRIEND_ADD err;
     uint32_t friend_num = tox_friend_add_norequest(mTox, req.userdata.pubkey, &err);

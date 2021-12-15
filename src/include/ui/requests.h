@@ -1,11 +1,11 @@
 #ifndef REQUESTS_H
 #define REQUESTS_H
 
-#include "interface/content_window.h"
+#include "ui/base_window.h"
 
-namespace interface
+namespace ui
 {
-    class Requests : public ContentWindow
+    class Requests : public BaseWindow
     {
     public:
         Requests();
@@ -14,6 +14,6 @@ namespace interface
     private:
     };
 
-} // namespace interface
+} // namespace ui
 
 #endif

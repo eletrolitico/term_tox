@@ -50,23 +50,23 @@ public:
     std::string m_toxID;
     std::string m_name;
 
-    void SetName(const std::string &);
-    std::vector<Request> GetRequests();
-    std::vector<Friend *> GetFriends();
-    Friend *GetFriend(uint32_t fNum);
-    void SendMessage(uint32_t fNum, std::string msg);
-    uint32_t AcceptRequest(Request);
-    uint32_t AddFriend(std::string toxID, std::string msg);
+    void set_name(const std::string &);
+    std::vector<Request> get_requests();
+    std::vector<Friend *> get_friends();
+    Friend *get_friend(uint32_t fNum);
+    void send_message(uint32_t fNum, const std::string &msg);
+    uint32_t accept_request(Request);
+    uint32_t add_friend(const std::string &toxID, const std::string &msg);
 
     static const char *connection_enum2text(TOX_CONNECTION conn);
 
-    inline void setUpdateCallback(void (*updateCb)())
+    inline void set_update_callback(void (*update_cb)())
     {
-        this->updateCb = updateCb;
+        this->update_cb = update_cb;
     }
 
 private:
-    void (*updateCb)();
+    void (*update_cb)();
     void setup_tox();
     void create_tox();
     void init_friends();

@@ -1,11 +1,11 @@
 #ifndef STATUS_BAR_H
 #define STATUS_BAR_H
 
-#include "interface/content_window.h"
+#include "ui/base_window.h"
 
-namespace interface
+namespace ui
 {
-    class StatusBar : public ContentWindow
+    class StatusBar : public BaseWindow
     {
     public:
         StatusBar(int, int, int);

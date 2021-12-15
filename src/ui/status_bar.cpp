@@ -1,8 +1,8 @@
-#include "interface/status_bar.h"
+#include "ui/status_bar.h"
 
-namespace interface
+namespace ui
 {
-    StatusBar::StatusBar(int a, int b, int c) : ContentWindow("", a, b, c)
+    StatusBar::StatusBar(int a, int b, int c) : BaseWindow("", a, b, c)
     {
     }
 

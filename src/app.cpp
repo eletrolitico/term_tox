@@ -3,39 +3,33 @@
 #include <signal.h>
 #include <string>
 #include <vector>
+#include <memory>
 
-// declaração de variáveis estáticas das classes
-#define CONTENT_WINDOW_IMPL
-#include "interface/content_window.h"
-#undef CONTENT_WINDOW_IMPL
-
-#include "interface/main.h"
+#include "ui/controller.h"
 #include "tox_handler.h"
 
-ToxHandler *tHand = NULL;
-interface::Main *iFace = NULL;
-
-void drawStuff()
-{
-    iFace->updateInterface('\0');
-}
+// declaração de variáveis estáticas da BaseWindow
+ToxHandler *ui::BaseWindow::t_hand;
+int ui::BaseWindow::xMax, ui::BaseWindow::height, ui::BaseWindow::start_y;
 
 int main()
 {
-    tHand = new ToxHandler();
-    iFace = interface::Main::getInstance(tHand);
+    static std::unique_ptr<ToxHandler> tox_handler = std::make_unique<ToxHandler>();
+    static std::unique_ptr<ui::Controller> controller = std::make_unique<ui::Controller>(ui::Controller::get_instance(tox_handler.get()));
 
-    tHand->setUpdateCallback(drawStuff);
+    auto draw_stuff = []()
+    {
+        controller->update('\0');
+    };
+
+    tox_handler->set_update_callback(draw_stuff);
 
     while (int ch = getch())
     {
-        if (ch == KEY_F(1))
+        if (ch == KEY_F(4))
             break;
-        iFace->updateInterface(ch);
+        controller->update(ch);
     }
-
-    delete iFace;
-    delete tHand;
 
     return 0;
 }
