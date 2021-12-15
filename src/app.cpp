@@ -12,16 +12,13 @@
 ToxHandler *ui::BaseWindow::t_hand;
 int ui::BaseWindow::xMax, ui::BaseWindow::height, ui::BaseWindow::start_y;
 
+auto tox_handler = new ToxHandler();
+auto controller = ui::Controller::get_instance(tox_handler);
+
+void draw_stuff() { controller->update('\0'); }
+
 int main()
 {
-    static std::unique_ptr<ToxHandler> tox_handler = std::make_unique<ToxHandler>();
-    static std::unique_ptr<ui::Controller> controller = std::make_unique<ui::Controller>(ui::Controller::get_instance(tox_handler.get()));
-
-    auto draw_stuff = []()
-    {
-        controller->update('\0');
-    };
-
     tox_handler->set_update_callback(draw_stuff);
 
     while (int ch = getch())
@@ -30,6 +27,9 @@ int main()
             break;
         controller->update(ch);
     }
+
+    delete tox_handler;
+    delete controller;
 
     return 0;
 }

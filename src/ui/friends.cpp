@@ -1,6 +1,9 @@
 #include "ui/friends.h"
 
-#define SPACE_LEFT 20
+constexpr int SPACE_LEFT{20};
+constexpr int KEY_ESCAPE{27};
+constexpr int KEY_END_LINE{'\n'};
+constexpr int KEY_BACKSPACE_VSCODE{127};
 
 namespace ui
 {
@@ -45,84 +48,108 @@ namespace ui
         wrefresh(win);
     }
 
-    void Friends::update(int ch)
+    void Friends::update(const int& ch)
     {
         switch (ch)
         {
-        case KEY_UP:
-            if (!adding_friend)
-            {
-                if (selected_friend > 0)
-                    --selected_friend;
-                else
-                    selected_friend = t_hand->get_friends().size();
-            }
-            break;
+            case KEY_UP: 
+                do_go_up(); 
+                break;
+            case KEY_DOWN: 
+                do_go_down(); 
+                break;
+            case KEY_END_LINE: 
+                do_enter(); 
+                break;
+            case KEY_BACKSPACE_VSCODE:
+            case KEY_BACKSPACE: 
+                do_erase(); 
+                break;
+            case KEY_ESCAPE: 
+                do_esc_key(); 
+                break;
+            default:
+                do_default(ch);
+        }
+    }
 
-        case KEY_DOWN:
-            if (!adding_friend)
-            {
-                if (selected_friend < t_hand->get_friends().size())
-                    ++selected_friend;
-                else
-                    selected_friend = 0;
-            }
-            break;
+    void Friends::do_go_up()
+    {
+        if (!adding_friend)
+        {
+            if (selected_friend > 0)
+                --selected_friend;
+            else
+                selected_friend = t_hand->get_friends().size();
+        }
+    }
 
-        case '\n':
-            if (selected_friend == 0)
+    void Friends::do_go_down()
+    {
+        if (!adding_friend)
+        {
+            if (selected_friend < t_hand->get_friends().size())
+                ++selected_friend;
+            else
+                selected_friend = 0;
+        }
+    }
+
+    void Friends::do_enter()
+    {
+        if (selected_friend == 0)
+        {
+            if (adding_friend)
             {
-                if (adding_friend)
+                if (tox_id_done)
                 {
-                    if (tox_id_done)
-                    {
-                        adding_friend = false;
-                        curs_set(0);
-                    }
-                    else
-                    {
-                        tox_id_done = true;
-                    }
+                    adding_friend = false;
+                    curs_set(0);
                 }
                 else
                 {
-                    adding_friend = true;
-                    curs_set(1);
+                    tox_id_done = true;
                 }
-            }
-            break;
-
-        case 127:
-        case KEY_BACKSPACE: // backspace
-            if (tox_id_done)
-            {
-                if (adding_message.size())
-                    adding_message.pop_back();
             }
             else
             {
-                if (adding_tox_id.size())
-                    adding_tox_id.pop_back();
+                adding_friend = true;
+                curs_set(1);
             }
-            break;
+        }
+    }
 
-        case 27: // escape
-            adding_tox_id = "";
-            adding_message = "";
-            adding_friend = false;
-            tox_id_done = false;
-            curs_set(0);
+    void Friends::do_erase()
+    {
+        if (tox_id_done)
+        {
+            if (adding_message.size())
+                adding_message.pop_back();
+        }
+        else
+        {
+            if (adding_tox_id.size())
+                adding_tox_id.pop_back();
+        }
+    }
 
-            break;
+    void Friends::do_esc_key()
+    {
+        adding_tox_id = "";
+        adding_message = "";
+        adding_friend = false;
+        tox_id_done = false;
+        curs_set(0);
+    }
 
-        default:
-            if (isprint(ch) && adding_friend)
-            {
-                if (tox_id_done)
-                    adding_message += (char)ch;
-                else
-                    adding_tox_id += (char)ch;
-            }
+    void Friends::do_default(const int& ch)
+    {
+        if (isprint(ch))
+        {
+            if (tox_id_done)
+                adding_message += (char)ch;
+            else
+                adding_tox_id += (char)ch;
         }
     }
 }

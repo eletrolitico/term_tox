@@ -31,14 +31,14 @@ namespace ui
             box(win, 0, 0);
             wrefresh(win);
         }
-        virtual void update(int ch) {}
+        virtual void update(const int& ch) {}
 
         inline static void setToxHandler(ToxHandler *t)
         {
             t_hand = t;
         }
 
-        inline std::string getTitle()
+        inline std::string getTitle() const
         {
             return title;
         }
