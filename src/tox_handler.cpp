@@ -412,6 +412,7 @@ uint32_t ToxHandler::accept_request(Request req)
 
 ToxHandler::ToxHandler()
 {
+    setup_tox();
 }
 
 ToxHandler::~ToxHandler()
