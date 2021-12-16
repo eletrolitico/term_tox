@@ -18,7 +18,7 @@ namespace ui
 
         auto friends = t_hand->get_friends();
 
-        if (friends.size() == 0 && !adding_friend)
+        if (friends.empty() && !adding_friend)
             mvwprintw(win, 2, SPACE_LEFT, "You have no friends!");
 
         if (selected_friend == 0 && !adding_friend)
@@ -103,6 +103,7 @@ namespace ui
             {
                 if (tox_id_done)
                 {
+                    t_hand->add_friend(adding_tox_id, adding_message);
                     adding_friend = false;
                     curs_set(0);
                 }
