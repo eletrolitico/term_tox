@@ -68,7 +68,8 @@ namespace ui
 
     void Controller::update(int ch)
     {
-        auto sel = menu->get_selected_window(ch);
+        BaseWindow *sel = menu->get_selected_window(ch);
+        menu->draw();
 
         this->status_bar->draw();
 

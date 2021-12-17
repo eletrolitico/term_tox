@@ -1,7 +1,9 @@
 #include "include/tox_handler.h"
+#include "include/utils.h"
 
-#include <iostream>
 #include <string.h>
+#include <iostream>
+#include <sodium.h>
 #include "include/tox_nodes.h"
 
 #define COUNTOF(x) (sizeof(x) / sizeof(*(x)))
@@ -18,20 +20,6 @@ const char *savedata_tmp_filename = "./savedata.tox.tmp";
  * Utils
  *
  ******************************************************************************/
-
-void hex2bin(uint8_t *__restrict__ dest, const char *__restrict__ src)
-{
-    size_t len = strlen(src) / 2;
-
-    for (size_t i = 0; i < len; ++i)
-        sscanf(&src[i * 2], "%2hhx", &dest[i]);
-}
-
-void bin2hex(char *__restrict__ dest, const uint8_t *__restrict__ src, const size_t len)
-{
-    for (size_t i = 0; i < len; ++i)
-        sprintf(&dest[i * 2], "%2hhx", src[i]);
-}
 
 Friend *getfriend(uint32_t fid)
 {
@@ -54,6 +42,42 @@ const char *ToxHandler::connection_enum2text(TOX_CONNECTION conn)
         return "Online(TCP)";
     case TOX_CONNECTION_UDP:
         return "Online(UDP)";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+const char *ToxHandler::add_friend_err_enum2text(TOX_ERR_FRIEND_ADD err)
+{
+    switch (err)
+    {
+    case TOX_ERR_FRIEND_ADD_OK:
+        return "Friend successfully added!";
+
+    case TOX_ERR_FRIEND_ADD_NULL:
+        return "One of the arguments to the function was NULL when it was not expected.";
+
+    case TOX_ERR_FRIEND_ADD_TOO_LONG:
+        return "The length of the friend request message exceeded TOX_MAX_FRIEND_REQUEST_LENGTH.";
+
+    case TOX_ERR_FRIEND_ADD_NO_MESSAGE:
+        return "The friend request message was empty. This, and the TOO_LONG code will never be returned from tox_friend_add_norequest.";
+
+    case TOX_ERR_FRIEND_ADD_OWN_KEY:
+        return "The friend address belongs to the sending client.";
+
+    case TOX_ERR_FRIEND_ADD_ALREADY_SENT:
+        return "that is already on the friend list.";
+
+    case TOX_ERR_FRIEND_ADD_BAD_CHECKSUM:
+        return "The friend address checksum failed.";
+
+    case TOX_ERR_FRIEND_ADD_SET_NEW_NOSPAM:
+        return "The friend was already there, but the nospam value was different.";
+
+    case TOX_ERR_FRIEND_ADD_MALLOC:
+        return "A memory allocation failed when trying to increase the friend list size.";
+
     default:
         return "UNKNOWN";
     }
@@ -229,8 +253,8 @@ void ToxHandler::create_tox()
     uint8_t tox_id_bin[TOX_ADDRESS_SIZE];
     tox_self_get_address(mTox, tox_id_bin);
 
-    char tox_id[TOX_ADDRESS_SIZE * 2];
-    bin2hex(tox_id, tox_id_bin, TOX_ADDRESS_SIZE);
+    char tox_id[TOX_ADDRESS_SIZE * 2 + 1];
+    sodium_bin2hex(tox_id, TOX_ADDRESS_SIZE * 2 + 1, tox_id_bin, TOX_ADDRESS_SIZE);
 
     m_toxID = std::string(tox_id);
 }
@@ -376,24 +400,24 @@ void ToxHandler::send_message(uint32_t fNum, const std::string &msg)
     }
 }
 
-uint32_t ToxHandler::add_friend(const std::string &toxID, const std::string &msg)
+TOX_ERR_FRIEND_ADD ToxHandler::add_friend(const std::string &toxID, const std::string &msg)
 {
     const char *tox_id = toxID.c_str();
 
-    uint8_t tox_id_bin[TOX_PUBLIC_KEY_SIZE];
-    hex2bin(tox_id_bin, tox_id);
+    uint8_t tox_id_bin[TOX_ADDRESS_SIZE];
+    sodium_hex2bin(tox_id_bin, TOX_ADDRESS_SIZE, tox_id, strnlen(tox_id, TOX_ADDRESS_SIZE * 2 + 1), NULL, NULL, NULL);
 
     TOX_ERR_FRIEND_ADD err;
     uint32_t friend_num = tox_friend_add(mTox, tox_id_bin, (uint8_t *)msg.c_str(), msg.length(), &err);
 
     if (err != TOX_ERR_FRIEND_ADD_OK)
     {
-        printf("! add friend with id %s failed, errcode:%d\n", tox_id, err);
-        return -1;
+        log("add friend with id " + std::string(tox_id) + " failed, errcode: " + std::to_string(err));
+        return err;
     }
 
     add_friend(friend_num);
-    return friend_num;
+    return TOX_ERR_FRIEND_ADD_OK;
 }
 
 uint32_t ToxHandler::accept_request(Request req)

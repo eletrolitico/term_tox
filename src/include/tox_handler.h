@@ -56,9 +56,10 @@ public:
     Friend *get_friend(uint32_t fNum);
     void send_message(uint32_t fNum, const std::string &msg);
     uint32_t accept_request(Request);
-    uint32_t add_friend(const std::string &toxID, const std::string &msg);
+    TOX_ERR_FRIEND_ADD add_friend(const std::string &toxID, const std::string &msg);
 
-    static const char *connection_enum2text(TOX_CONNECTION conn);
+    static const char *connection_enum2text(TOX_CONNECTION);
+    static const char *add_friend_err_enum2text(TOX_ERR_FRIEND_ADD);
 
     inline void set_update_callback(void (*update_cb)())
     {

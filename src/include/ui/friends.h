@@ -5,6 +5,14 @@
 
 namespace ui
 {
+    enum class State
+    {
+        LIST,
+        TYPING_TOX_ID,
+        TYPING_MESSAGE,
+        FRIEND_ADDED
+    };
+
     class Friends : public BaseWindow
     {
     public:
@@ -12,19 +20,23 @@ namespace ui
         ~Friends() {}
 
         void draw() override;
-        void update(const int& ch) override;
+        void update(const int &ch) override;
 
     private:
-        uint8_t selected_friend = 0;
-        bool adding_friend = false, tox_id_done = false;
-        std::string adding_tox_id = "", adding_message = "";
+        uint8_t selected_friend{0};
+        State state{State::LIST};
+        std::string adding_tox_id{""}, adding_message{""}, frnd_added_msg{""};
 
+        // Interface drawing
+        void draw_list();
+
+        // Actions
         void do_go_up();
         void do_go_down();
         void do_enter();
         void do_erase();
         void do_esc_key();
-        void do_default(const int& ch);
+        void do_default(const int &ch);
     };
 }
 #endif

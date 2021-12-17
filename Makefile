@@ -5,7 +5,7 @@ else
 endif
 
 CC_FLAGS = -c -g -std=c++20 -Wall -I src/include -fmodules-ts
-LD_FLAGS = -ltoxcore -lncurses -ltinfo -pthread
+LD_FLAGS = -ltoxcore -lncurses -ltinfo -lsodium -pthread
 
 PROJ_NAME = tfg
 

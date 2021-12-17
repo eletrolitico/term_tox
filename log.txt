@@ -1,0 +1,1 @@
+add friend with id 2b1abd3f7f270ae9fc430be63c9385ea3d750d2aa5fb0787b7110adbe0d27a5992c78b18018a failed, errcode: 4
