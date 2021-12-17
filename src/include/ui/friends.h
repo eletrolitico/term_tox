@@ -29,6 +29,7 @@ namespace ui
 
         // Interface drawing
         void draw_list();
+        int draw_line_with_break(int ini_y, int ini_x, int width, const std::string &msg);
 
         // Actions
         void do_go_up();

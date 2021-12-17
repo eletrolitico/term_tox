@@ -13,6 +13,8 @@ namespace ui
 
     void Friends::draw()
     {
+        int next_pos;
+
         wclear(win);
         box(win, 0, 0);
 
@@ -23,12 +25,12 @@ namespace ui
             break;
 
         case State::TYPING_TOX_ID:
-            mvwprintw(win, 2, SPACE_LEFT, "Tox ID: %s", adding_tox_id.c_str());
+            draw_line_with_break(2, 4, 20, "Tox ID: " + adding_tox_id);
             break;
 
         case State::TYPING_MESSAGE:
-            mvwprintw(win, 2, SPACE_LEFT, "Tox ID: %s", adding_tox_id.c_str());
-            mvwprintw(win, 3, SPACE_LEFT, "message: %s", adding_message.c_str());
+            next_pos = draw_line_with_break(2, 4, 20, "Tox ID: " + adding_tox_id);
+            draw_line_with_break(next_pos, 4, 20, "message: " + adding_message);
             break;
 
         case State::FRIEND_ADDED:
@@ -61,6 +63,26 @@ namespace ui
             mvwprintw(win, i, 2, "%s [%s] - %s", f->name, ToxHandler::connection_enum2text(f->connection), f->status_message);
             wattroff(win, A_STANDOUT);
         }
+    }
+
+    int Friends::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)
+    {
+        unsigned int stride = get_width() - SPACE_LEFT, offset = 0;
+
+        if (str.size() > stride)
+        {
+            while (offset < str.length())
+            {
+                auto tmp = str.substr(offset, stride);
+                mvwprintw(win, ini_y, SPACE_LEFT, tmp.c_str());
+                offset += stride;
+                ++ini_y;
+            }
+            return ini_y;
+        }
+
+        mvwprintw(win, ini_y, SPACE_LEFT, str.c_str());
+        return ini_y + 1;
     }
 
     void Friends::update(const int &ch)

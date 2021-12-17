@@ -31,7 +31,7 @@ namespace ui
             box(win, 0, 0);
             wrefresh(win);
         }
-        virtual void update(const int& ch) {}
+        virtual void update(const int &ch) {}
 
         inline static void setToxHandler(ToxHandler *t)
         {
@@ -49,12 +49,21 @@ namespace ui
             height = _height;
             start_y = _start_y;
         }
+        inline int get_width()
+        {
+            if (hasCustDims)
+                return cust_xMax - 4;
+            else
+                return xMax - 4;
+        }
 
     protected:
         static ToxHandler *t_hand;
         static int xMax, height, start_y;
 
         WINDOW *win;
+
+    private:
         std::string title;
         int cust_xMax, cust_height, cust_start_y;
         bool hasCustDims = false;
