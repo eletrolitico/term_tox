@@ -1,7 +1,9 @@
 /objects
+/obj
 /tfg
 .vscode
 *.autosave
 *.dia~
-gcm.cache
+*.cache
 log.txt
+*.d
