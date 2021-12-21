@@ -47,10 +47,11 @@ public:
     ToxHandler();
     ~ToxHandler();
 
-    std::string m_toxID;
+    std::string m_tox_id;
     std::string m_name;
 
     void set_name(const std::string &);
+    std::string get_status_self();
     std::vector<Request> get_requests();
     std::vector<Friend *> get_friends();
     Friend *get_friend(uint32_t fNum);
@@ -67,6 +68,8 @@ public:
     }
 
 private:
+    std::thread *m_tox_thread;
+
     void (*update_cb)();
     void setup_tox();
     void create_tox();

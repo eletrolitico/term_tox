@@ -28,8 +28,8 @@ int main()
         controller->update(ch);
     }
 
-    delete tox_handler;
     delete controller;
+    delete tox_handler;
 
     return 0;
 }
