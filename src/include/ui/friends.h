@@ -5,13 +5,6 @@
 
 namespace ui
 {
-    enum class State
-    {
-        LIST,
-        TYPING_TOX_ID,
-        TYPING_MESSAGE,
-        FRIEND_ADDED
-    };
 
     class Friends : public BaseWindow
     {
@@ -23,6 +16,14 @@ namespace ui
         void update(const int &ch) override;
 
     private:
+        enum class State
+        {
+            LIST,
+            TYPING_TOX_ID,
+            TYPING_MESSAGE,
+            FRIEND_ADDED
+        };
+
         uint8_t selected_friend{0};
         State state{State::LIST};
         std::string adding_tox_id{""}, adding_message{""}, frnd_added_msg{""};

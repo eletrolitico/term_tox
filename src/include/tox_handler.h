@@ -9,14 +9,6 @@
 #define PORT_RANGE_END 34445
 #define SAVE_DATA_INTERVAL 5 // interval in seconds
 
-typedef enum FriendUpdate
-{
-    MESSAGE,
-    NAME,
-    CON_STATUS,
-    STATUS_MSG
-} FriendUpdate;
-
 typedef struct
 {
     uint32_t friend_num;
@@ -26,6 +18,7 @@ typedef struct
     TOX_CONNECTION connection;
 
     std::vector<std::string> hist;
+    std::string get_pub_key();
 } Friend;
 
 struct FriendUserData
@@ -39,6 +32,7 @@ typedef struct
     uint32_t id;
     bool is_friend_request;
     FriendUserData userdata;
+    std::string get_pub_key();
 } Request;
 
 class ToxHandler
@@ -47,28 +41,35 @@ public:
     ToxHandler();
     ~ToxHandler();
 
-    std::string m_tox_id;
-    std::string m_name;
-
-    void set_name(const std::string &);
-    std::string get_status_self();
-    std::vector<Request> get_requests();
-    std::vector<Friend *> get_friends();
-    Friend *get_friend(uint32_t fNum);
+    // Actions
     void send_message(uint32_t fNum, const std::string &msg);
     uint32_t accept_request(Request);
     TOX_ERR_FRIEND_ADD add_friend(const std::string &toxID, const std::string &msg);
 
-    static const char *connection_enum2text(TOX_CONNECTION);
-    static const char *add_friend_err_enum2text(TOX_ERR_FRIEND_ADD);
+    // Info getters
+    Friend *get_friend(uint32_t fNum);
+    std::vector<Friend *> get_friends();
+    std::vector<Request> get_requests();
+    std::string get_self_status();
+    std::string get_self_name();
+    std::string get_self_tox_address();
+    std::string get_self_status_message();
+    uint32_t get_avg_tox_sleep_time();
 
+    // Setters
+    void set_name(const std::string &, const std::string & = "I'm using tox");
     inline void set_update_callback(void (*update_cb)())
     {
         this->update_cb = update_cb;
     }
 
+    // Converters
+    static const char *connection_enum2text(TOX_CONNECTION);
+    static const char *add_friend_err_enum2text(TOX_ERR_FRIEND_ADD);
+
 private:
     std::thread *m_tox_thread;
+    std::string m_self_tox_address;
 
     void (*update_cb)();
     void setup_tox();

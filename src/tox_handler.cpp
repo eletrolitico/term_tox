@@ -2,6 +2,7 @@
 #include "include/utils.h"
 
 #include <string.h>
+#include <sstream>
 #include <chrono>
 #include <iostream>
 #include <sodium.h>
@@ -9,6 +10,7 @@
 
 #define COUNTOF(x) (sizeof(x) / sizeof(*(x)))
 
+uint32_t avg_tox_sleep_time = 0;
 Tox *mTox = NULL;
 Friend self;
 std::vector<Friend *> mFriends;
@@ -187,16 +189,18 @@ const char *log_level[5] = {
 static void log_callback(Tox *tox, TOX_LOG_LEVEL level, const char *file, uint32_t line,
                          const char *func, const char *message, void *user_data)
 {
-    printf("[%s]: ", log_level[level]);
+    std::stringstream msg;
+
+    msg << "[" << log_level[level] << "]: ";
 
     if (message && file && line)
-        printf("%s:%d %s", file, line, message);
+        msg << file << ":" << line << " " << message;
     else if (func)
-        printf("%s", func);
+        msg << func;
     else
-        printf("Bug log toxcore");
+        msg << "Bug log toxcore";
 
-    printf("\n");
+    log(msg.str(), "tox_log.log");
 }
 
 void ToxHandler::create_tox()
@@ -206,7 +210,7 @@ void ToxHandler::create_tox()
     // tox_options_set_start_port(&options, PORT_RANGE_START);
     // tox_options_set_end_port(&options, PORT_RANGE_END);
     tox_options_set_log_callback(&options, log_callback);
-    tox_options_set_udp_enabled(&options, true);
+    tox_options_set_udp_enabled(&options, false);
 
     tox_options_set_proxy_type(&options, TOX_PROXY_TYPE_NONE);
     tox_options_set_experimental_thread_safety(&options, true);
@@ -259,7 +263,7 @@ void ToxHandler::create_tox()
     char tox_id[TOX_ADDRESS_SIZE * 2 + 1];
     sodium_bin2hex(tox_id, TOX_ADDRESS_SIZE * 2 + 1, tox_id_bin, TOX_ADDRESS_SIZE);
 
-    m_tox_id = std::string(tox_id);
+    m_self_tox_address = std::string(tox_id);
 }
 
 Friend *ToxHandler::add_friend(uint32_t fNum)
@@ -308,8 +312,6 @@ void ToxHandler::init_friends()
     tox_self_get_status_message(mTox, (uint8_t *)self.status_message);
 
     tox_self_get_public_key(mTox, self.pubkey);
-
-    m_name = std::string(self.name);
 }
 
 void ToxHandler::update_savedata_file()
@@ -349,12 +351,17 @@ void ToxHandler::bootstrap()
             continue;
         }
         TOX_ERR_BOOTSTRAP btErr;
-        tox_bootstrap(mTox, d->address, d->port_udp, d->key, &btErr);
-        if (btErr != TOX_ERR_BOOTSTRAP_OK)
+        bool ok;
+        ok = tox_bootstrap(mTox, d->address, d->port_udp, d->key, &btErr);
+        if (btErr != TOX_ERR_BOOTSTRAP_OK || !ok)
         {
             printf("err bootstrap: %d", btErr);
         }
-        tox_add_tcp_relay(mTox, d->address, d->port_tcp, d->key, 0);
+        ok = tox_add_tcp_relay(mTox, d->address, d->port_tcp, d->key, &btErr);
+        if (btErr != TOX_ERR_BOOTSTRAP_OK || !ok)
+        {
+            printf("err bootstrap relay: %d", btErr);
+        }
         i++;
     }
 }
@@ -375,12 +382,10 @@ void ToxHandler::setup_tox()
     init_friends();
 }
 
-void ToxHandler::set_name(const std::string &str)
+void ToxHandler::set_name(const std::string &str, const std::string &status_msg)
 {
-    m_name = str;
     tox_self_set_name(mTox, (uint8_t *)str.c_str(), str.size(), NULL);
-    auto stsMsg = "sts msg";
-    tox_self_set_status_message(mTox, (uint8_t *)stsMsg, strlen(stsMsg), NULL);
+    tox_self_set_status_message(mTox, (uint8_t *)status_msg.c_str(), status_msg.size(), NULL);
 }
 
 std::vector<Request> ToxHandler::get_requests()
@@ -442,17 +447,30 @@ uint32_t ToxHandler::accept_request(Request req)
     return friend_num;
 }
 
-std::string ToxHandler::get_status_self()
+std::string ToxHandler::get_self_status()
 {
     return std::string(ToxHandler::connection_enum2text(self.connection));
 }
 
 void iterate_tox()
 {
+    uint32_t tmp;
     while (is_running)
     {
         tox_iterate(mTox, NULL);
-        std::this_thread::sleep_for(std::chrono::milliseconds(tox_iteration_interval(mTox)));
+        tmp = tox_iteration_interval(mTox);
+
+        if (avg_tox_sleep_time == 0)
+        {
+            avg_tox_sleep_time = tmp;
+        }
+        else
+        {
+            avg_tox_sleep_time += tmp;
+            avg_tox_sleep_time /= 2;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(tmp));
     }
 
     update_savedata_file();
@@ -460,9 +478,26 @@ void iterate_tox()
     printf("terminating thread\n");
 }
 
+std::string ToxHandler::get_self_name()
+{
+    return std::string(self.name);
+}
+std::string ToxHandler::get_self_tox_address()
+{
+    return m_self_tox_address;
+}
+std::string ToxHandler::get_self_status_message()
+{
+    return std::string(self.status_message);
+}
+
 ToxHandler::ToxHandler()
 {
     setup_tox();
+    if (!get_self_name().size())
+    {
+        set_name("Toxer");
+    }
     is_running = true;
     m_tox_thread = new std::thread(iterate_tox);
 }
@@ -472,4 +507,23 @@ ToxHandler::~ToxHandler()
     is_running = false;
     m_tox_thread->join();
     delete m_tox_thread;
+}
+
+std::string Friend::get_pub_key()
+{
+    char key[TOX_PUBLIC_KEY_SIZE * 2 + 1];
+    sodium_bin2hex(key, TOX_PUBLIC_KEY_SIZE * 2 + 1, this->pubkey, TOX_PUBLIC_KEY_SIZE);
+    return std::string(key);
+}
+
+std::string Request::get_pub_key()
+{
+    char key[TOX_PUBLIC_KEY_SIZE * 2 + 1];
+    sodium_bin2hex(key, TOX_PUBLIC_KEY_SIZE * 2 + 1, this->userdata.pubkey, TOX_PUBLIC_KEY_SIZE);
+    return std::string(key);
+}
+
+uint32_t ToxHandler::get_avg_tox_sleep_time()
+{
+    return avg_tox_sleep_time;
 }

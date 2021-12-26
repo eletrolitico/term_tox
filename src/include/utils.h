@@ -4,5 +4,6 @@
 #include <string>
 
 void log(const std::string &msg);
+void log(const std::string &msg, const std::string &file);
 
 #endif
