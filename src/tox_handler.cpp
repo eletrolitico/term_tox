@@ -223,7 +223,7 @@ void ToxHandler::create_tox()
     tox_options_set_udp_enabled(&options, true);
 
     tox_options_set_proxy_type(&options, TOX_PROXY_TYPE_NONE);
-    tox_options_set_experimental_thread_safety(&options, true);
+    //tox_options_set_experimental_thread_safety(&options, true);
     tox_options_set_hole_punching_enabled(&options, true);
     //tox_options_set_proxy_host(&options, (char *)settings.proxy_ip);
     //tox_options_set_proxy_port(&options, settings.proxy_port);
@@ -403,7 +403,7 @@ std::vector<Request> ToxHandler::get_requests()
     return mRequests;
 }
 
-std::vector<Friend *> ToxHandler::get_friends()
+std::vector<Friend *> &ToxHandler::get_friends()
 {
     return mFriends;
 }

@@ -60,7 +60,7 @@ namespace ui
 
             if (selected_friend == i + 1)
                 wattron(win, A_STANDOUT);
-            mvwprintw(win, i, 2, "%s [%s] - %s", f->name, ToxHandler::connection_enum2text(f->connection), f->status_message);
+            mvwprintw(win, 4 + i, 2, "%s [%s] - %s", f->name, ToxHandler::connection_enum2text(f->connection), f->status_message);
             wattroff(win, A_STANDOUT);
         }
     }
@@ -134,31 +134,35 @@ namespace ui
 
     void Friends::do_enter()
     {
-        if (selected_friend == 0)
+        switch (state)
         {
-            switch (state)
-            {
 
-            case State::LIST:
+        case State::LIST:
+            if (selected_friend == 0)
+            {
                 curs_set(1);
                 state = State::TYPING_TOX_ID;
-                break;
-
-            case State::TYPING_TOX_ID:
-                state = State::TYPING_MESSAGE;
-                break;
-
-            case State::TYPING_MESSAGE:
+            }
+            else
             {
-                auto err = t_hand->add_friend(adding_tox_id, adding_message);
-                frnd_added_msg = std::string(ToxHandler::add_friend_err_enum2text(err));
-                curs_set(0);
-                state = State::FRIEND_ADDED;
-                break;
+                talking_to = selected_friend - 1;
             }
-            case State::FRIEND_ADDED:
-                break;
-            }
+            break;
+
+        case State::TYPING_TOX_ID:
+            state = State::TYPING_MESSAGE;
+            break;
+
+        case State::TYPING_MESSAGE:
+        {
+            auto err = t_hand->add_friend(adding_tox_id, adding_message);
+            frnd_added_msg = std::string(ToxHandler::add_friend_err_enum2text(err));
+            curs_set(0);
+            state = State::FRIEND_ADDED;
+            break;
+        }
+        case State::FRIEND_ADDED:
+            break;
         }
     }
 

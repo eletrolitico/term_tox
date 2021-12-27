@@ -1,4 +1,4 @@
-#include "ui/requests.h"
+#include "ui/messages.h"
 
 constexpr int SPACE_LEFT{20};
 constexpr int KEY_END_LINE{'\n'};
@@ -6,11 +6,11 @@ constexpr int KEY_ESCAPE{27};
 
 namespace ui
 {
-    Requests::Requests() : BaseWindow("Requests")
+    Messages::Messages() : BaseWindow("Messages")
     {
     }
 
-    void Requests::draw()
+    void Messages::draw()
     {
         wclear(win);
         box(win, 0, 0);
@@ -28,7 +28,7 @@ namespace ui
         wrefresh(win);
     }
 
-    void Requests::draw_list()
+    void Messages::draw_list()
     {
         auto requests = t_hand->get_requests();
 
@@ -46,7 +46,7 @@ namespace ui
         }
     }
 
-    void Requests::draw_request()
+    void Messages::draw_request()
     {
         auto requests = t_hand->get_requests();
         auto r = requests[selected_request];
@@ -57,7 +57,7 @@ namespace ui
         mvwprintw(win, next_y + 2, SPACE_LEFT, "<del> to reject");
     }
 
-    void Requests::update(const int &ch)
+    void Messages::update(const int &ch)
     {
         switch (ch)
         {
@@ -78,7 +78,7 @@ namespace ui
         }
     }
 
-    void Requests::do_go_up()
+    void Messages::do_go_up()
     {
         if (state == State::LIST)
         {
@@ -89,7 +89,7 @@ namespace ui
         }
     }
 
-    void Requests::do_go_down()
+    void Messages::do_go_down()
     {
         if (state == State::LIST)
         {
@@ -100,7 +100,7 @@ namespace ui
         }
     }
 
-    void Requests::do_enter()
+    void Messages::do_enter()
     {
         auto requests = t_hand->get_requests();
         switch (state)
@@ -119,12 +119,12 @@ namespace ui
         }
     }
 
-    void Requests::do_esc_key()
+    void Messages::do_esc_key()
     {
         state = State::LIST;
     }
 
-    int Requests::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)
+    int Messages::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)
     {
         unsigned int stride = get_width() - SPACE_LEFT, offset = 0;
 

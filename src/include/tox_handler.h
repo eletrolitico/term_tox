@@ -48,7 +48,7 @@ public:
 
     // Info getters
     Friend *get_friend(uint32_t fNum);
-    std::vector<Friend *> get_friends();
+    std::vector<Friend *> &get_friends();
     std::vector<Request> get_requests();
     std::string get_self_status();
     std::string get_self_name();

@@ -15,14 +15,18 @@
 // declaração de variáveis estáticas da BaseWindow
 ToxHandler *ui::BaseWindow::t_hand;
 int ui::BaseWindow::xMax, ui::BaseWindow::height, ui::BaseWindow::start_y;
+int ui::BaseWindow::talking_to = -1;
 
-auto tox_handler = new ToxHandler();
-auto controller = ui::Controller::get_instance(tox_handler);
+// globals
+ToxHandler *tox_handler;
+ui::Controller *controller;
 
 void draw_stuff() { controller->update('\0'); }
 
 int main()
 {
+    tox_handler = new ToxHandler();
+    controller = ui::Controller::get_instance(tox_handler);
     tox_handler->set_update_callback(draw_stuff);
 
     while (int ch = getch())

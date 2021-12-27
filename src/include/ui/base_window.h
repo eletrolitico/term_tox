@@ -61,6 +61,7 @@ namespace ui
         static ToxHandler *t_hand;
         static int xMax, height, start_y;
 
+        static int talking_to;
         WINDOW *win;
 
     private:
