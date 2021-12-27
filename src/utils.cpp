@@ -6,7 +6,7 @@
 void log(const std::string &msg, const std::string &file)
 {
     std::fstream Log;
-    Log.open(file, std::ios_base::out | std::ios_base::in);
+    Log.open(file, std::ios_base::app);
     if (!Log.is_open())
     {
         Log.clear();

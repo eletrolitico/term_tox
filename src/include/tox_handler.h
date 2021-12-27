@@ -58,10 +58,7 @@ public:
 
     // Setters
     void set_name(const std::string &, const std::string & = "I'm using tox");
-    inline void set_update_callback(void (*update_cb)())
-    {
-        this->update_cb = update_cb;
-    }
+    static void set_update_callback(void (*update_cb)());
 
     // Converters
     static const char *connection_enum2text(TOX_CONNECTION);

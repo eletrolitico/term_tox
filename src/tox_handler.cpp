@@ -19,6 +19,9 @@ const char *savedata_filename = "./savedata.tox";
 const char *savedata_tmp_filename = "./savedata.tox.tmp";
 bool is_running = false;
 
+// callback para atualizar a interface
+void (*iface_update_cb)();
+
 /*******************************************************************************
  *
  * Utils
@@ -127,6 +130,7 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
     f->hist.push_back(std::string((char *)message));
 
     printf("* receive message from %s\n", f->name);
+    iface_update_cb();
 }
 
 void friend_name_cb(Tox *tox, uint32_t friend_num, const uint8_t *name, size_t length, void *user_data)
@@ -138,6 +142,7 @@ void friend_name_cb(Tox *tox, uint32_t friend_num, const uint8_t *name, size_t l
         f->name = (char *)realloc(f->name, length + 1);
         sprintf(f->name, "%.*s", (int)length, (char *)name);
     }
+    iface_update_cb();
 }
 
 void friend_status_message_cb(Tox *tox, uint32_t friend_num, const uint8_t *message, size_t length, void *user_data)
@@ -148,6 +153,7 @@ void friend_status_message_cb(Tox *tox, uint32_t friend_num, const uint8_t *mess
         f->status_message = (char *)realloc(f->status_message, length + 1);
         sprintf(f->status_message, "%.*s", (int)length, (char *)message);
     }
+    iface_update_cb();
 }
 
 void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION connection_status, void *user_data)
@@ -158,6 +164,7 @@ void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION c
         f->connection = connection_status;
         printf("* %s is %s\n", f->name, ToxHandler::connection_enum2text(connection_status));
     }
+    iface_update_cb();
 }
 
 void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *message, size_t length, void *user_data)
@@ -171,11 +178,14 @@ void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *messa
     sprintf(req.msg, "%.*s", (int)length, (char *)message);
 
     mRequests.push_back(req);
+    iface_update_cb();
 }
 
 void self_connection_status_cb(Tox *tox, TOX_CONNECTION connection_status, void *user_data)
 {
     self.connection = connection_status;
+    log("[INFO]: Fiquei online");
+    iface_update_cb();
 }
 
 const char *log_level[5] = {
@@ -210,7 +220,7 @@ void ToxHandler::create_tox()
     // tox_options_set_start_port(&options, PORT_RANGE_START);
     // tox_options_set_end_port(&options, PORT_RANGE_END);
     tox_options_set_log_callback(&options, log_callback);
-    tox_options_set_udp_enabled(&options, false);
+    tox_options_set_udp_enabled(&options, true);
 
     tox_options_set_proxy_type(&options, TOX_PROXY_TYPE_NONE);
     tox_options_set_experimental_thread_safety(&options, true);
@@ -526,4 +536,9 @@ std::string Request::get_pub_key()
 uint32_t ToxHandler::get_avg_tox_sleep_time()
 {
     return avg_tox_sleep_time;
+}
+
+void ToxHandler::set_update_callback(void (*update_cb)())
+{
+    iface_update_cb = update_cb;
 }
