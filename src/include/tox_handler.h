@@ -26,6 +26,12 @@ struct FriendUserData
     uint8_t pubkey[TOX_PUBLIC_KEY_SIZE];
 };
 
+enum class MESSAGE
+{
+    RECEIVED = 0,
+    SENT
+};
+
 typedef struct
 {
     char *msg;

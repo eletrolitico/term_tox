@@ -6,9 +6,12 @@
 #include <chrono>
 #include <iostream>
 #include <sodium.h>
+#include <unordered_map>
 #include "include/tox_nodes.h"
 
 #define COUNTOF(x) (sizeof(x) / sizeof(*(x)))
+
+std::unordered_map <int, std::vector <std::pair<MESSAGE, std::string> > > mMessages;
 
 uint32_t avg_tox_sleep_time = 0;
 Tox *mTox = NULL;
@@ -127,7 +130,9 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
         return;
     }
 
-    f->hist.push_back(std::string((char *)message));
+    std::string msg = std::string((char *)message);
+    f->hist.push_back(msg);
+    mMessages[friend_num].push_back({MESSAGE::RECEIVED, msg}); 
 
     printf("* receive message from %s\n", f->name);
     iface_update_cb();
