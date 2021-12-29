@@ -11,10 +11,10 @@
 
 #define COUNTOF(x) (sizeof(x) / sizeof(*(x)))
 
-std::unordered_map <int, std::vector <std::pair<MESSAGE, std::string> > > mMessages;
+std::unordered_map<int, std::vector<std::pair<MESSAGE, std::string>>> mMessages;
 
 uint32_t avg_tox_sleep_time = 0;
-Tox *mTox = NULL;
+Tox *mTox = nullptr;
 Friend self;
 std::vector<Friend *> mFriends;
 std::vector<Request> mRequests;
@@ -39,7 +39,7 @@ Friend *getfriend(uint32_t fid)
             return fnd;
             break;
         }
-    return NULL;
+    return nullptr;
 }
 
 const char *ToxHandler::connection_enum2text(TOX_CONNECTION conn)
@@ -65,7 +65,7 @@ const char *ToxHandler::add_friend_err_enum2text(TOX_ERR_FRIEND_ADD err)
         return "Friend successfully added!";
 
     case TOX_ERR_FRIEND_ADD_NULL:
-        return "One of the arguments to the function was NULL when it was not expected.";
+        return "One of the arguments to the function was nullptr when it was not expected.";
 
     case TOX_ERR_FRIEND_ADD_TOO_LONG:
         return "The length of the friend request message exceeded TOX_MAX_FRIEND_REQUEST_LENGTH.";
@@ -132,9 +132,8 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
 
     std::string msg = std::string((char *)message);
     f->hist.push_back(msg);
-    mMessages[friend_num].push_back({MESSAGE::RECEIVED, msg}); 
+    mMessages[friend_num].push_back({MESSAGE::RECEIVED, msg});
 
-    printf("* receive message from %s\n", f->name);
     iface_update_cb();
 }
 
@@ -286,7 +285,7 @@ Friend *ToxHandler::add_friend(uint32_t fNum)
     Friend *f = (Friend *)calloc(1, sizeof(Friend));
     f->friend_num = fNum;
     f->connection = TOX_CONNECTION_NONE;
-    tox_friend_get_public_key(mTox, fNum, f->pubkey, NULL);
+    tox_friend_get_public_key(mTox, fNum, f->pubkey, nullptr);
     mFriends.push_back(f);
     return f;
 }
@@ -304,15 +303,15 @@ void ToxHandler::init_friends()
         uint32_t friend_num = friend_list[i];
         Friend *f = add_friend(friend_num);
 
-        len = tox_friend_get_name_size(mTox, friend_num, NULL) + 1;
+        len = tox_friend_get_name_size(mTox, friend_num, nullptr) + 1;
         f->name = (char *)calloc(1, len);
-        tox_friend_get_name(mTox, friend_num, (uint8_t *)f->name, NULL);
+        tox_friend_get_name(mTox, friend_num, (uint8_t *)f->name, nullptr);
 
-        len = tox_friend_get_status_message_size(mTox, friend_num, NULL) + 1;
+        len = tox_friend_get_status_message_size(mTox, friend_num, nullptr) + 1;
         f->status_message = (char *)calloc(1, len);
-        tox_friend_get_status_message(mTox, friend_num, (uint8_t *)f->status_message, NULL);
+        tox_friend_get_status_message(mTox, friend_num, (uint8_t *)f->status_message, nullptr);
 
-        tox_friend_get_public_key(mTox, friend_num, f->pubkey, NULL);
+        tox_friend_get_public_key(mTox, friend_num, f->pubkey, nullptr);
     }
     free(friend_list);
 
@@ -399,8 +398,8 @@ void ToxHandler::setup_tox()
 
 void ToxHandler::set_name(const std::string &str, const std::string &status_msg)
 {
-    tox_self_set_name(mTox, (uint8_t *)str.c_str(), str.size(), NULL);
-    tox_self_set_status_message(mTox, (uint8_t *)status_msg.c_str(), status_msg.size(), NULL);
+    tox_self_set_name(mTox, (uint8_t *)str.c_str(), str.size(), nullptr);
+    tox_self_set_status_message(mTox, (uint8_t *)status_msg.c_str(), status_msg.size(), nullptr);
 }
 
 std::vector<Request> ToxHandler::get_requests()
@@ -424,8 +423,11 @@ void ToxHandler::send_message(uint32_t fNum, const std::string &msg)
     tox_friend_send_message(mTox, fNum, TOX_MESSAGE_TYPE_NORMAL, (uint8_t *)msg.c_str(), msg.length(), &err);
     if (err != TOX_ERR_FRIEND_SEND_MESSAGE_OK)
     {
-        std::cout << "Erro ao mandar msg: " << err << std::endl;
+        log("Erro ao mandar msg: " + std::to_string(err));
+        return;
     }
+
+    mMessages[fNum].push_back({MESSAGE::SENT, msg});
 }
 
 TOX_ERR_FRIEND_ADD ToxHandler::add_friend(const std::string &toxID, const std::string &msg)
@@ -433,7 +435,7 @@ TOX_ERR_FRIEND_ADD ToxHandler::add_friend(const std::string &toxID, const std::s
     const char *tox_id = toxID.c_str();
 
     uint8_t tox_id_bin[TOX_ADDRESS_SIZE];
-    sodium_hex2bin(tox_id_bin, TOX_ADDRESS_SIZE, tox_id, strnlen(tox_id, TOX_ADDRESS_SIZE * 2 + 1), NULL, NULL, NULL);
+    sodium_hex2bin(tox_id_bin, TOX_ADDRESS_SIZE, tox_id, strnlen(tox_id, TOX_ADDRESS_SIZE * 2 + 1), nullptr, nullptr, nullptr);
 
     TOX_ERR_FRIEND_ADD err;
     uint32_t friend_num = tox_friend_add(mTox, tox_id_bin, (uint8_t *)msg.c_str(), msg.length(), &err);
@@ -472,7 +474,7 @@ void iterate_tox()
     uint32_t tmp;
     while (is_running)
     {
-        tox_iterate(mTox, NULL);
+        tox_iterate(mTox, nullptr);
         tmp = tox_iteration_interval(mTox);
 
         if (avg_tox_sleep_time == 0)
@@ -546,4 +548,9 @@ uint32_t ToxHandler::get_avg_tox_sleep_time()
 void ToxHandler::set_update_callback(void (*update_cb)())
 {
     iface_update_cb = update_cb;
+}
+
+std::vector<std::pair<MESSAGE, std::string>> ToxHandler::get_messages(uint32_t fNUm)
+{
+    return mMessages[fNUm];
 }

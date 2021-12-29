@@ -33,13 +33,13 @@ namespace ui
         for (size_t i = 0; i < windows.size(); ++i)
         {
             if (i == selected)
-                wattr_on(win, A_STANDOUT, NULL);
+                wattr_on(win, A_STANDOUT, nullptr);
             if (i == 0)
                 mvwprintw(win, height / 2, 2, "%s", windows[0]->getTitle().c_str());
             else
                 wprintw(win, "%s", windows[i]->getTitle().c_str());
             if (i == selected)
-                wattr_off(win, A_STANDOUT, NULL);
+                wattr_off(win, A_STANDOUT, nullptr);
 
             if (i < windows.size() - 1)
                 waddch(win, ' ');

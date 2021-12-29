@@ -15,7 +15,7 @@ namespace ui
     {
         int next_pos;
 
-        wclear(win);
+        werase(win);
         box(win, 0, 0);
 
         switch (state)
@@ -85,7 +85,7 @@ namespace ui
         return ini_y + 1;
     }
 
-    void Friends::update(const int &ch)
+    bool Friends::update(const int &ch)
     {
         switch (ch)
         {
@@ -108,6 +108,8 @@ namespace ui
         default:
             do_default(ch);
         }
+
+        return true;
     }
 
     void Friends::do_go_up()
@@ -145,7 +147,7 @@ namespace ui
             }
             else
             {
-                talking_to = selected_friend - 1;
+                talking_to = t_hand->get_friends()[selected_friend - 1];
             }
             break;
 

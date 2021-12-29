@@ -13,7 +13,7 @@ namespace ui
         ~Friends() {}
 
         void draw() override;
-        void update(const int &ch) override;
+        bool update(const int &ch) override;
 
     private:
         enum class State

@@ -15,7 +15,7 @@
 // declaração de variáveis estáticas da BaseWindow
 ToxHandler *ui::BaseWindow::t_hand;
 int ui::BaseWindow::xMax, ui::BaseWindow::height, ui::BaseWindow::start_y;
-int ui::BaseWindow::talking_to = -1;
+Friend *ui::BaseWindow::talking_to = nullptr;
 
 // globals
 ToxHandler *tox_handler;

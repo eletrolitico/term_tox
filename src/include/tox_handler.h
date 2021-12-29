@@ -56,6 +56,7 @@ public:
     Friend *get_friend(uint32_t fNum);
     std::vector<Friend *> &get_friends();
     std::vector<Request> get_requests();
+    std::vector<std::pair<MESSAGE, std::string>> get_messages(uint32_t fNum);
     std::string get_self_status();
     std::string get_self_name();
     std::string get_self_tox_address();

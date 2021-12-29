@@ -1,8 +1,6 @@
 #include "ui/messages.h"
 
-constexpr int SPACE_LEFT{20};
 constexpr int KEY_END_LINE{'\n'};
-constexpr int KEY_ESCAPE{27};
 
 namespace ui
 {
@@ -12,52 +10,46 @@ namespace ui
 
     void Messages::draw()
     {
-        wclear(win);
+        werase(win);
         box(win, 0, 0);
 
-        switch (state)
+        if (talking_to == nullptr)
         {
-        case State::LIST:
-            draw_list();
-            break;
-        case State::VIEWING_REQUEST:
-            draw_request();
-            break;
+            draw_no_friend();
+        }
+        else
+        {
+            draw_messages();
         }
 
         wrefresh(win);
     }
 
-    void Messages::draw_list()
+    void Messages::draw_messages()
     {
-        auto requests = t_hand->get_requests();
+        auto msgs = t_hand->get_messages(talking_to->friend_num);
+        int msgLines = ("message: " + typing).size() / (get_width() - 2) + 1;
 
-        if (requests.empty())
-            mvwprintw(win, 2, SPACE_LEFT, "You have no requests!");
+        int msgPos = get_height() - 3 - msgLines;
 
-        for (size_t i = 0; i < requests.size(); ++i)
-        {
-            auto r = requests[i];
+        if (msgs.size())
+            for (size_t i = msgs.size() - 1; i >= 0; --i)
+            {
+                auto prefix = msgs[i].first == MESSAGE::SENT ? "Voce: " : std::string(talking_to->name) + ": ";
+                msgPos -= draw_line_with_break(msgPos, 2, get_width() - 2, prefix + msgs[i].second) + 1;
+                if (msgPos <= 1)
+                    break;
+            }
 
-            if (selected_request == i)
-                wattron(win, A_STANDOUT);
-            mvwprintw(win, i + 2, SPACE_LEFT, "[%s] - %s", r.get_pub_key().c_str(), std::string(r.msg).substr(0, 20).c_str());
-            wattroff(win, A_STANDOUT);
-        }
+        draw_line_with_break(get_height() - 2, 2, get_width() - 2, "message: " + typing);
     }
 
-    void Messages::draw_request()
+    void Messages::draw_no_friend()
     {
-        auto requests = t_hand->get_requests();
-        auto r = requests[selected_request];
-
-        mvwprintw(win, 3, SPACE_LEFT, "Request from: %s", r.get_pub_key().c_str());
-        int next_y = draw_line_with_break(4, SPACE_LEFT, 20, "Message: " + std::string(r.msg));
-        mvwprintw(win, next_y + 1, SPACE_LEFT, "<enter> to accept");
-        mvwprintw(win, next_y + 2, SPACE_LEFT, "<del> to reject");
+        draw_line_with_break((get_height() - 2) / 2, 4, get_width() - 4, "Select a friend first");
     }
 
-    void Messages::update(const int &ch)
+    bool Messages::update(const int &ch)
     {
         switch (ch)
         {
@@ -70,77 +62,51 @@ namespace ui
         case KEY_END_LINE:
             do_enter();
             break;
-        case KEY_ESCAPE:
-            do_esc_key();
-            break;
         default:
+            do_default(ch);
             break;
         }
+
+        return true;
+    }
+    void Messages::do_default(int ch)
+    {
+        if (isprint(ch))
+            typing += (char)ch;
     }
 
     void Messages::do_go_up()
     {
-        if (state == State::LIST)
-        {
-            if (selected_request > 0)
-                --selected_request;
-            else
-                selected_request = t_hand->get_requests().size();
-        }
+        ++scroll;
     }
 
     void Messages::do_go_down()
     {
-        if (state == State::LIST)
-        {
-            if (selected_request < t_hand->get_requests().size())
-                ++selected_request;
-            else
-                selected_request = 0;
-        }
+        if (scroll > 0)
+            --scroll;
     }
 
     void Messages::do_enter()
     {
-        auto requests = t_hand->get_requests();
-        switch (state)
+        if (typing.size() && talking_to != nullptr)
         {
-        case State::LIST:
-            if (requests.size())
-                state = State::VIEWING_REQUEST;
-            break;
-        case State::VIEWING_REQUEST:
-            t_hand->accept_request(requests[selected_request]);
-            state = State::LIST;
-            break;
-
-        default:
-            break;
+            t_hand->send_message(talking_to->friend_num, typing);
+            typing = "";
         }
-    }
-
-    void Messages::do_esc_key()
-    {
-        state = State::LIST;
     }
 
     int Messages::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)
     {
-        unsigned int stride = get_width() - SPACE_LEFT, offset = 0;
+        unsigned int stride = width - 2;
 
-        if (str.size() > stride)
+        size_t lines = str.size() / stride + 1;
+
+        for (size_t i = 0; i < lines; ++i)
         {
-            while (offset < str.length())
-            {
-                auto tmp = str.substr(offset, stride);
-                mvwprintw(win, ini_y, SPACE_LEFT, tmp.c_str());
-                offset += stride;
-                ++ini_y;
-            }
-            return ini_y;
+            auto tmp = str.substr(i * stride, stride);
+            mvwprintw(win, ini_y + (i - lines + 1), ini_x, tmp.c_str());
         }
 
-        mvwprintw(win, ini_y, SPACE_LEFT, str.c_str());
-        return ini_y + 1;
+        return lines;
     }
 } // namespace ui

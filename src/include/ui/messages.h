@@ -12,25 +12,19 @@ namespace ui
         ~Messages() {}
 
         void draw() override;
-        void update(const int &ch) override;
+        bool update(const int &ch) override;
 
     private:
-        enum class State
-        {
-            LIST,
-            VIEWING_REQUEST
-        };
-
-        uint8_t selected_request{0};
-        State state{State::LIST};
+        std::string typing{""};
+        uint32_t scroll{0};
 
         void do_go_up();
         void do_go_down();
         void do_enter();
-        void do_esc_key();
+        void do_default(int ch);
 
-        void draw_list();
-        void draw_request();
+        void draw_no_friend();
+        void draw_messages();
 
         int draw_line_with_break(int ini_y, int ini_x, int width, const std::string &msg);
     };

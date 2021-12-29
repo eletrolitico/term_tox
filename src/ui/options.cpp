@@ -1,4 +1,4 @@
-#include "ui/requests.h"
+#include "ui/options.h"
 
 constexpr int SPACE_LEFT{20};
 constexpr int KEY_END_LINE{'\n'};
@@ -6,11 +6,11 @@ constexpr int KEY_ESCAPE{27};
 
 namespace ui
 {
-    Requests::Requests() : BaseWindow("Requests")
+    Options::Options() : BaseWindow("Options")
     {
     }
 
-    void Requests::draw()
+    void Options::draw()
     {
         werase(win);
         box(win, 0, 0);
@@ -28,7 +28,7 @@ namespace ui
         wrefresh(win);
     }
 
-    void Requests::draw_list()
+    void Options::draw_list()
     {
         auto requests = t_hand->get_requests();
 
@@ -46,7 +46,7 @@ namespace ui
         }
     }
 
-    void Requests::draw_request()
+    void Options::draw_request()
     {
         auto requests = t_hand->get_requests();
         auto r = requests[selected_request];
@@ -57,7 +57,7 @@ namespace ui
         mvwprintw(win, next_y + 2, SPACE_LEFT, "<del> to reject");
     }
 
-    bool Requests::update(const int &ch)
+    bool Options::update(const int &ch)
     {
         switch (ch)
         {
@@ -76,10 +76,11 @@ namespace ui
         default:
             break;
         }
+
         return true;
     }
 
-    void Requests::do_go_up()
+    void Options::do_go_up()
     {
         if (state == State::LIST)
         {
@@ -90,7 +91,7 @@ namespace ui
         }
     }
 
-    void Requests::do_go_down()
+    void Options::do_go_down()
     {
         if (state == State::LIST)
         {
@@ -101,7 +102,7 @@ namespace ui
         }
     }
 
-    void Requests::do_enter()
+    void Options::do_enter()
     {
         auto requests = t_hand->get_requests();
         switch (state)
@@ -120,12 +121,12 @@ namespace ui
         }
     }
 
-    void Requests::do_esc_key()
+    void Options::do_esc_key()
     {
         state = State::LIST;
     }
 
-    int Requests::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)
+    int Options::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)
     {
         unsigned int stride = get_width() - SPACE_LEFT, offset = 0;
 

@@ -1,15 +1,15 @@
-#ifndef REQUESTS_H
-#define REQUESTS_H
+#ifndef OPTIONS_H
+#define OPTIONS_H
 
 #include "ui/base_window.h"
 
 namespace ui
 {
-    class Requests : public BaseWindow
+    class Options : public BaseWindow
     {
     public:
-        Requests();
-        ~Requests() {}
+        Options();
+        ~Options() {}
 
         void draw() override;
         bool update(const int &ch) override;
@@ -34,7 +34,6 @@ namespace ui
 
         int draw_line_with_break(int ini_y, int ini_x, int width, const std::string &msg);
     };
-
 } // namespace ui
 
 #endif

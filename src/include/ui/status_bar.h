@@ -9,8 +9,7 @@ namespace ui
     {
     public:
         StatusBar(int, int, int);
-        void update();
-        void draw();
+        void draw() override;
     };
 }
 

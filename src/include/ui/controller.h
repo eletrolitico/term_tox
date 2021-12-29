@@ -1,5 +1,5 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
 #include <memory>
 #include "ui/menu.h"

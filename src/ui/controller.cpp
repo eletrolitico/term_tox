@@ -2,6 +2,8 @@
 
 #include "ui/friends.h"
 #include "ui/requests.h"
+#include "ui/messages.h"
+#include "ui/options.h"
 
 #include <ncurses.h>
 #include <stdlib.h>
@@ -10,7 +12,7 @@
 
 namespace ui
 {
-    Controller *Controller::_main = NULL;
+    Controller *Controller::_main = nullptr;
 
     Controller::Controller(ToxHandler *t_hand)
     {
@@ -35,9 +37,9 @@ namespace ui
 
         getmaxyx(stdscr, this->yMax, this->xMax);
 
-        //attr_on(COLOR_PAIR(1), NULL);
+        //attr_on(COLOR_PAIR(1), nullptr);
         printw("Aperte F4 para sair");
-        //attr_off(COLOR_PAIR(1), NULL);
+        //attr_off(COLOR_PAIR(1), nullptr);
 
         refresh();
 
@@ -48,8 +50,8 @@ namespace ui
 
         this->menu->add_window(new Friends());
         this->menu->add_window(new Requests());
-        this->menu->add_window(new Friends());
-        this->menu->add_window(new Friends());
+        this->menu->add_window(new Messages());
+        this->menu->add_window(new Options());
 
         this->menu->draw();
         this->menu->get_window(0)->draw();
@@ -60,7 +62,7 @@ namespace ui
 
     Controller *Controller::get_instance(ToxHandler *t)
     {
-        if (_main == NULL)
+        if (_main == nullptr)
             _main = new Controller(t);
 
         return _main;
@@ -71,10 +73,10 @@ namespace ui
         BaseWindow *sel = menu->get_selected_window(ch);
         menu->draw();
 
-        this->status_bar->draw();
+        if (sel->update(ch))
+            sel->draw();
 
-        sel->update(ch);
-        sel->draw();
+        this->status_bar->draw();
     }
 
     Controller::~Controller()

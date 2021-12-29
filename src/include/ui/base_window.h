@@ -27,11 +27,14 @@ namespace ui
 
         virtual void draw()
         {
-            wclear(win);
+            werase(win);
             box(win, 0, 0);
             wrefresh(win);
         }
-        virtual void update(const int &ch) {}
+        virtual bool update(const int &ch)
+        {
+            return true;
+        }
 
         inline static void setToxHandler(ToxHandler *t)
         {
@@ -49,6 +52,7 @@ namespace ui
             height = _height;
             start_y = _start_y;
         }
+
         inline int get_width()
         {
             if (hasCustDims)
@@ -57,15 +61,23 @@ namespace ui
                 return xMax - 4;
         }
 
+        inline int get_height()
+        {
+            if (hasCustDims)
+                return cust_height;
+            else
+                return height;
+        }
+
     protected:
         static ToxHandler *t_hand;
-        static int xMax, height, start_y;
 
-        static int talking_to;
+        static Friend *talking_to;
         WINDOW *win;
 
     private:
         std::string title;
+        static int xMax, height, start_y;
         int cust_xMax, cust_height, cust_start_y;
         bool hasCustDims = false;
     };
