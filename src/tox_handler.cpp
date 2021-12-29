@@ -126,7 +126,7 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
 
     if (type != TOX_MESSAGE_TYPE_NORMAL)
     {
-        printf("* receive MESSAGE ACTION type from %s, no supported\n", f->name);
+        log("* receive MESSAGE ACTION type from  no supported");
         return;
     }
 
@@ -166,7 +166,6 @@ void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION c
     if (f)
     {
         f->connection = connection_status;
-        printf("* %s is %s\n", f->name, ToxHandler::connection_enum2text(connection_status));
     }
     iface_update_cb();
 }

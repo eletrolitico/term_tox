@@ -28,18 +28,19 @@ namespace ui
     void Messages::draw_messages()
     {
         auto msgs = t_hand->get_messages(talking_to->friend_num);
-        int msgLines = ("message: " + typing).size() / (get_width() - 2) + 1;
+        std::string tmp = "message: " + typing;
+        int msgLines = tmp.size() / (get_width() - 2) + 1;
 
         int msgPos = get_height() - 3 - msgLines;
 
-        if (msgs.size())
-            for (size_t i = msgs.size() - 1; i >= 0; --i)
-            {
-                auto prefix = msgs[i].first == MESSAGE::SENT ? "Voce: " : std::string(talking_to->name) + ": ";
-                msgPos -= draw_line_with_break(msgPos, 2, get_width() - 2, prefix + msgs[i].second) + 1;
-                if (msgPos <= 1)
-                    break;
-            }
+        for (int i = (int)msgs.size() - 1; i >= 0; --i)
+        {
+            auto prefix = msgs[i].first == MESSAGE::SENT ? "Voce: " : std::string(talking_to->name) + ": ";
+            tmp = prefix + msgs[i].second;
+            msgPos -= draw_line_with_break(msgPos, 2, get_width() - 2, tmp) + 1;
+            if (msgPos <= 1)
+                break;
+        }
 
         draw_line_with_break(get_height() - 2, 2, get_width() - 2, "message: " + typing);
     }
