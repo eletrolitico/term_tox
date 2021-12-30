@@ -3,6 +3,7 @@
 constexpr int SPACE_LEFT{20};
 constexpr int KEY_END_LINE{'\n'};
 constexpr int KEY_ESCAPE{27};
+constexpr int KEY_BACKSPACE_VSCODE{127};
 
 namespace ui
 {
@@ -20,8 +21,8 @@ namespace ui
         case State::LIST:
             draw_list();
             break;
-        case State::VIEWING_REQUEST:
-            draw_request();
+        case State::EDITING_OPTION:
+            draw_option();
             break;
         }
 
@@ -30,31 +31,21 @@ namespace ui
 
     void Options::draw_list()
     {
-        auto requests = t_hand->get_requests();
 
-        if (requests.empty())
-            mvwprintw(win, 2, SPACE_LEFT, "You have no requests!");
-
-        for (size_t i = 0; i < requests.size(); ++i)
+        for (size_t i = 0; i < options.size(); ++i)
         {
-            auto r = requests[i];
+            auto opt = options[i];
 
-            if (selected_request == i)
+            if (selected_option == i)
                 wattron(win, A_STANDOUT);
-            mvwprintw(win, i + 2, SPACE_LEFT, "[%s] - %s", r.get_pub_key().c_str(), std::string(r.msg).substr(0, 20).c_str());
+            mvwprintw(win, i + 2, SPACE_LEFT, opt.c_str());
             wattroff(win, A_STANDOUT);
         }
     }
 
-    void Options::draw_request()
+    void Options::draw_option()
     {
-        auto requests = t_hand->get_requests();
-        auto r = requests[selected_request];
-
-        mvwprintw(win, 3, SPACE_LEFT, "Request from: %s", r.get_pub_key().c_str());
-        int next_y = draw_line_with_break(4, SPACE_LEFT, 20, "Message: " + std::string(r.msg));
-        mvwprintw(win, next_y + 1, SPACE_LEFT, "<enter> to accept");
-        mvwprintw(win, next_y + 2, SPACE_LEFT, "<del> to reject");
+        mvwprintw(win, 2, 1, (options[selected_option] + ": " + typing).c_str());
     }
 
     bool Options::update(const int &ch)
@@ -73,7 +64,12 @@ namespace ui
         case KEY_ESCAPE:
             do_esc_key();
             break;
+        case KEY_BACKSPACE:
+        case KEY_BACKSPACE_VSCODE:
+            do_backspace();
+            break;
         default:
+            do_default(ch);
             break;
         }
 
@@ -82,38 +78,37 @@ namespace ui
 
     void Options::do_go_up()
     {
-        if (state == State::LIST)
-        {
-            if (selected_request > 0)
-                --selected_request;
-            else
-                selected_request = t_hand->get_requests().size();
-        }
+        if (state == State::LIST && selected_option > 0)
+            --selected_option;
     }
 
     void Options::do_go_down()
     {
-        if (state == State::LIST)
-        {
-            if (selected_request < t_hand->get_requests().size())
-                ++selected_request;
-            else
-                selected_request = 0;
-        }
+        if (state == State::LIST && selected_option < options.size() - 1)
+            ++selected_option;
+    }
+
+    void Options::do_default(int ch)
+    {
+        if (state == State::EDITING_OPTION && isprint(ch))
+            typing += (char)ch;
+    }
+
+    void Options::do_backspace()
+    {
+        if (typing.size())
+            typing.pop_back();
     }
 
     void Options::do_enter()
     {
-        auto requests = t_hand->get_requests();
         switch (state)
         {
         case State::LIST:
-            if (requests.size())
-                state = State::VIEWING_REQUEST;
+            state = State::EDITING_OPTION;
             break;
-        case State::VIEWING_REQUEST:
-            t_hand->accept_request(requests[selected_request]);
-            state = State::LIST;
+        case State::EDITING_OPTION:
+            save_option();
             break;
 
         default:
@@ -121,28 +116,25 @@ namespace ui
         }
     }
 
+    void Options::save_option()
+    {
+        switch (selected_option)
+        {
+        case 0:
+            t_hand->set_name(typing);
+            break;
+        case 1:
+            t_hand->set_status_message(typing);
+            break;
+        }
+        state = State::LIST;
+        typing = "";
+    }
+
     void Options::do_esc_key()
     {
         state = State::LIST;
+        typing = "";
     }
 
-    int Options::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)
-    {
-        unsigned int stride = get_width() - SPACE_LEFT, offset = 0;
-
-        if (str.size() > stride)
-        {
-            while (offset < str.length())
-            {
-                auto tmp = str.substr(offset, stride);
-                mvwprintw(win, ini_y, SPACE_LEFT, tmp.c_str());
-                offset += stride;
-                ++ini_y;
-            }
-            return ini_y;
-        }
-
-        mvwprintw(win, ini_y, SPACE_LEFT, str.c_str());
-        return ini_y + 1;
-    }
 } // namespace ui

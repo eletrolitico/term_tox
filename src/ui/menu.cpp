@@ -14,12 +14,18 @@ namespace ui
         {
         case KEY_LEFT:
             if (selected > (uint8_t)0)
-                --selected;
+            {
+                windows[selected--]->on_blur();
+                windows[selected]->on_focus();
+            }
             break;
 
         case KEY_RIGHT:
             if (selected < windows.size() - 1)
-                ++selected;
+            {
+                windows[selected++]->on_blur();
+                windows[selected]->on_focus();
+            }
             break;
         }
 

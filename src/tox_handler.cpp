@@ -395,10 +395,24 @@ void ToxHandler::setup_tox()
     init_friends();
 }
 
-void ToxHandler::set_name(const std::string &str, const std::string &status_msg)
+void ToxHandler::set_name(const std::string &str)
 {
     tox_self_set_name(mTox, (uint8_t *)str.c_str(), str.size(), nullptr);
-    tox_self_set_status_message(mTox, (uint8_t *)status_msg.c_str(), status_msg.size(), nullptr);
+
+    if (self.name)
+        free(self.name);
+    self.name = (char *)malloc((str.size() + 1) * sizeof(char));
+    strcpy(self.name, str.c_str());
+}
+
+void ToxHandler::set_status_message(const std::string &str)
+{
+    tox_self_set_status_message(mTox, (uint8_t *)str.c_str(), str.size(), nullptr);
+
+    if (self.status_message)
+        free(self.status_message);
+    self.status_message = (char *)malloc((str.size() + 1) * sizeof(char));
+    strcpy(self.status_message, str.c_str());
 }
 
 std::vector<Request> ToxHandler::get_requests()

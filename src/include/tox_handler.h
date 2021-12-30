@@ -64,7 +64,8 @@ public:
     uint32_t get_avg_tox_sleep_time();
 
     // Setters
-    void set_name(const std::string &, const std::string & = "I'm using tox");
+    void set_name(const std::string &);
+    void set_status_message(const std::string &);
     static void set_update_callback(void (*update_cb)());
 
     // Converters

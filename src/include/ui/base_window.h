@@ -69,6 +69,9 @@ namespace ui
                 return height;
         }
 
+        virtual void on_focus() {}
+        virtual void on_blur() {}
+
     protected:
         static ToxHandler *t_hand;
 

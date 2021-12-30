@@ -1,5 +1,7 @@
 #include "ui/messages.h"
 
+#include <ranges>
+
 constexpr int KEY_END_LINE{'\n'};
 
 namespace ui
@@ -33,11 +35,10 @@ namespace ui
 
         int msgPos = get_height() - 3 - msgLines;
 
-        for (int i = (int)msgs.size() - 1; i >= 0; --i)
+        for (auto msg : msgs | std::views::reverse)
         {
-            auto prefix = msgs[i].first == MESSAGE::SENT ? "Voce: " : std::string(talking_to->name) + ": ";
-            tmp = prefix + msgs[i].second;
-            msgPos -= draw_line_with_break(msgPos, 2, get_width() - 2, tmp) + 1;
+            auto prefix = msg.first == MESSAGE::SENT ? "Voce: " : std::string(talking_to->name) + ": ";
+            msgPos -= draw_line_with_break(msgPos, 2, get_width() - 2, prefix + msg.second) + 1;
             if (msgPos <= 1)
                 break;
         }

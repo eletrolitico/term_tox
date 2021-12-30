@@ -18,21 +18,29 @@ namespace ui
         enum class State
         {
             LIST,
-            VIEWING_REQUEST
+            EDITING_OPTION
         };
 
-        uint8_t selected_request{0};
+        uint8_t selected_option{0};
         State state{State::LIST};
+        std::string typing{""};
+
+        const std::vector<std::string> options = {
+            "Name",
+            "Status message",
+        };
 
         void do_go_up();
         void do_go_down();
         void do_enter();
         void do_esc_key();
+        void do_default(int ch);
+        void do_backspace();
 
         void draw_list();
-        void draw_request();
+        void draw_option();
 
-        int draw_line_with_break(int ini_y, int ini_x, int width, const std::string &msg);
+        void save_option();
     };
 } // namespace ui
 

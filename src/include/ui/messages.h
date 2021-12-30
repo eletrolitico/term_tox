@@ -14,6 +14,16 @@ namespace ui
         void draw() override;
         bool update(const int &ch) override;
 
+        inline void on_focus() override
+        {
+            curs_set(1);
+        }
+
+        inline void on_blur() override
+        {
+            curs_set(0);
+        }
+
     private:
         std::string typing{""};
         uint32_t scroll{0};
