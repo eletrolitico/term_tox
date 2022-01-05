@@ -28,12 +28,12 @@ struct ToxFile
         RECEIVING = 1,
     };
 
-    ToxFile();
-    ToxFile(uint32_t FileNum, uint32_t FriendId, std::string FileName, uint64_t filesize, FileDirection Direction);
+    ToxFile(){};
+    ToxFile(uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction);
 
     uint32_t file_num;
     uint32_t friend_num;
-    std::string fileName;
+    std::string file_name;
     std::shared_ptr<std::fstream> file;
     FileStatus status;
     FileDirection direction;

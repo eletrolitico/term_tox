@@ -30,6 +30,13 @@ bool is_running = false;
 // callback para atualizar a interface
 void (*iface_update_cb)();
 
+ToxFile::ToxFile(uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction)
+{
+    this->file_num = FileNum;
+    this->friend_num = FriendId;
+    this->file_name = FileName;
+}
+
 /*******************************************************************************
  *
  * Utils
@@ -169,7 +176,7 @@ void download_files(std::vector<std::string> files, uint32_t friend_num)
             continue;
         }
 
-        ToxFile tox_file{file_num, friend_num, f, f_size, ToxFile::SENDING};
+        ToxFile tox_file{file_num, friend_num, f, ToxFile::SENDING};
         tox_file_get_file_id(mTox, friend_num, file_num, tox_file.file_id, nullptr);
 
         mFiles[file_num] = std::move(tox_file);
@@ -235,7 +242,7 @@ void file_recv_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint32
         return;
     }
 
-    ToxFile tox_file{file_number, friend_number, std::string((char *)filename), file_size, ToxFile::RECEIVING};
+    ToxFile tox_file{file_number, friend_number, std::string((char *)filename), ToxFile::RECEIVING};
     tox_file_get_file_id(mTox, friend_number, file_number, tox_file.file_id, nullptr);
 
     mFiles[file_number] = tox_file;
@@ -294,7 +301,7 @@ void file_recv_chunk_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, 
 
     if (!file.file->is_open())
     {
-        file.file->open(file.fileName, std::ios::out | std::ios::trunc);
+        file.file->open(file.file_name, std::ios::out | std::ios::trunc);
         log("abriu file");
         if (!file.file->is_open())
         {
