@@ -3,7 +3,7 @@
 constexpr int SPACE_LEFT{20};
 constexpr int KEY_ESCAPE{27};
 constexpr int KEY_END_LINE{'\n'};
-constexpr int KEY_BACKSPACE_VSCODE{127};
+constexpr int KEY_DELETE{127};
 
 namespace ui
 {
@@ -98,7 +98,7 @@ namespace ui
         case KEY_END_LINE:
             do_enter();
             break;
-        case KEY_BACKSPACE_VSCODE:
+        case KEY_DELETE:
         case KEY_BACKSPACE:
             do_erase();
             break;

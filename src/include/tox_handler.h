@@ -9,6 +9,36 @@
 #define PORT_RANGE_END 34445
 #define SAVE_DATA_INTERVAL 5 // interval in seconds
 
+struct ToxFile
+{
+    enum FileStatus
+    {
+        INITIALIZING = 0,
+        PAUSED = 1,
+        TRANSMITTING = 2,
+        BROKEN = 3,
+        CANCELED = 4,
+        FINISHED = 5,
+    };
+
+    enum FileDirection : bool
+    {
+        SENDING = 0,
+        RECEIVING = 1,
+    };
+
+    ToxFile();
+    ToxFile(uint32_t FileNum, uint32_t FriendId, std::string FileName, uint64_t filesize, FileDirection Direction);
+
+    uint32_t file_num;
+    uint32_t friend_num;
+    std::string fileName;
+    std::shared_ptr<std::fstream> file;
+    FileStatus status;
+    FileDirection direction;
+    uint8_t file_id[TOX_FILE_ID_LENGTH];
+};
+
 typedef struct
 {
     uint32_t friend_num;
@@ -48,24 +78,24 @@ public:
     ~ToxHandler();
 
     // Actions
-    void send_message(uint32_t fNum, const std::string &msg);
-    uint32_t accept_request(Request);
-    TOX_ERR_FRIEND_ADD add_friend(const std::string &toxID, const std::string &msg);
+    static void send_message(uint32_t fNum, const std::string &msg, bool add_to_msg = true);
+    static uint32_t accept_request(Request);
+    static TOX_ERR_FRIEND_ADD add_friend(const std::string &toxID, const std::string &msg);
 
     // Info getters
-    Friend *get_friend(uint32_t fNum);
-    std::vector<Friend *> &get_friends();
-    std::vector<Request> get_requests();
-    std::vector<std::pair<MESSAGE, std::string>> get_messages(uint32_t fNum);
-    std::string get_self_status();
-    std::string get_self_name();
+    static Friend *get_friend(uint32_t fNum);
+    static std::vector<Friend *> &get_friends();
+    static std::vector<Request> get_requests();
+    static std::vector<std::pair<MESSAGE, std::string>> get_messages(uint32_t fNum);
+    static std::string get_self_status();
+    static std::string get_self_name();
     std::string get_self_tox_address();
-    std::string get_self_status_message();
-    uint32_t get_avg_tox_sleep_time();
+    static std::string get_self_status_message();
+    static uint32_t get_avg_tox_sleep_time();
 
     // Setters
     void set_name(const std::string &);
-    void set_status_message(const std::string &);
+    static void set_status_message(const std::string &);
     static void set_update_callback(void (*update_cb)());
 
     // Converters
@@ -82,6 +112,6 @@ private:
     void init_friends();
     void bootstrap();
     void update_savedata_file();
-    Friend *add_friend(uint32_t);
+    static Friend *add_friend(uint32_t);
 };
 #endif

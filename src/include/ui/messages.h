@@ -32,6 +32,7 @@ namespace ui
         void do_go_down();
         void do_enter();
         void do_default(int ch);
+        void do_erase();
 
         void draw_no_friend();
         void draw_messages();

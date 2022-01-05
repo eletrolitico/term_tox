@@ -10,3 +10,7 @@ log.txt
 savedata.tox
 
 *.log
+
+/shared/*
+/shared/.*
+!/shared/.keep

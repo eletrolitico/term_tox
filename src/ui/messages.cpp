@@ -3,6 +3,7 @@
 #include <ranges>
 
 constexpr int KEY_END_LINE{'\n'};
+constexpr int KEY_DELETE{127};
 
 namespace ui
 {
@@ -64,6 +65,10 @@ namespace ui
         case KEY_END_LINE:
             do_enter();
             break;
+        case KEY_BACKSPACE:
+        case KEY_DELETE:
+            do_erase();
+            break;
         default:
             do_default(ch);
             break;
@@ -75,6 +80,12 @@ namespace ui
     {
         if (isprint(ch))
             typing += (char)ch;
+    }
+
+    void Messages::do_erase()
+    {
+        if (typing.size())
+            typing.pop_back();
     }
 
     void Messages::do_go_up()

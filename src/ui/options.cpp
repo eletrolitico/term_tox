@@ -3,7 +3,7 @@
 constexpr int SPACE_LEFT{20};
 constexpr int KEY_END_LINE{'\n'};
 constexpr int KEY_ESCAPE{27};
-constexpr int KEY_BACKSPACE_VSCODE{127};
+constexpr int KEY_DELETE{127};
 
 namespace ui
 {
@@ -65,7 +65,7 @@ namespace ui
             do_esc_key();
             break;
         case KEY_BACKSPACE:
-        case KEY_BACKSPACE_VSCODE:
+        case KEY_DELETE:
             do_backspace();
             break;
         default:
@@ -106,8 +106,10 @@ namespace ui
         {
         case State::LIST:
             state = State::EDITING_OPTION;
+            curs_set(1);
             break;
         case State::EDITING_OPTION:
+            curs_set(0);
             save_option();
             break;
 
@@ -133,6 +135,7 @@ namespace ui
 
     void Options::do_esc_key()
     {
+        curs_set(0);
         state = State::LIST;
         typing = "";
     }

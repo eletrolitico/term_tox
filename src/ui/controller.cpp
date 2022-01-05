@@ -73,14 +73,13 @@ namespace ui
         BaseWindow *sel = menu->get_selected_window(ch);
         menu->draw();
 
-        this->status_bar->draw();
+        bool shouldDraw = sel->update(ch);
 
-        if (sel->update(ch))
-            sel->draw();
-
-        Friends *v = dynamic_cast<Friends *>(sel);
-        if (v)
+        if (shouldDraw)
+        {
             this->status_bar->draw();
+            sel->draw();
+        }
     }
 
     Controller::~Controller()
