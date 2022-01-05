@@ -29,7 +29,7 @@ struct ToxFile
     };
 
     ToxFile(){};
-    ToxFile(uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction);
+    ToxFile(std::shared_ptr<std::fstream> file, uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction);
 
     uint32_t file_num;
     uint32_t friend_num;

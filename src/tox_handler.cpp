@@ -30,11 +30,12 @@ bool is_running = false;
 // callback para atualizar a interface
 void (*iface_update_cb)();
 
-ToxFile::ToxFile(uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction)
+ToxFile::ToxFile(std::shared_ptr<std::fstream> file, uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction)
 {
     this->file_num = FileNum;
     this->friend_num = FriendId;
     this->file_name = FileName;
+    this->file = file;
 }
 
 /*******************************************************************************
@@ -159,8 +160,8 @@ void download_files(std::vector<std::string> files, uint32_t friend_num)
 {
     for (auto f : files)
     {
-        auto file = std::make_shared<std::fstream>(f, std::ios::binary);
-        if (!file)
+        auto file = std::make_shared<std::fstream>("shared/" + f, std::ios::binary | std::ios::in);
+        if (!file->is_open())
             continue;
 
         file->seekg(0, std::ios::end);
@@ -176,10 +177,10 @@ void download_files(std::vector<std::string> files, uint32_t friend_num)
             continue;
         }
 
-        ToxFile tox_file{file_num, friend_num, f, ToxFile::SENDING};
+        ToxFile tox_file{file, file_num, friend_num, f, ToxFile::SENDING};
         tox_file_get_file_id(mTox, friend_num, file_num, tox_file.file_id, nullptr);
 
-        mFiles[file_num] = std::move(tox_file);
+        mFiles[file_num] = tox_file;
     }
 }
 
@@ -220,7 +221,7 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
 
         if (cmd.starts_with(dlCmd))
         {
-            download_files(tokenize(cmd.substr(dlCmd.size() + 1)), friend_num);
+            download_files(tokenize(cmd.substr(dlCmd.size())), friend_num);
         }
     }
     else
@@ -242,7 +243,7 @@ void file_recv_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint32
         return;
     }
 
-    ToxFile tox_file{file_number, friend_number, std::string((char *)filename), ToxFile::RECEIVING};
+    ToxFile tox_file{std::make_shared<std::fstream>(), file_number, friend_number, std::string((char *)filename), ToxFile::RECEIVING};
     tox_file_get_file_id(mTox, friend_number, file_number, tox_file.file_id, nullptr);
 
     mFiles[file_number] = tox_file;
@@ -255,6 +256,7 @@ void file_chunk_request_cb(Tox *tox, uint32_t friend_number, uint32_t file_numbe
     if (!file.file)
     {
         log("There isn't a file");
+        tox_file_send_chunk(tox, friend_number, file_number, position, nullptr, 0, nullptr);
         return;
     }
 
