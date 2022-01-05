@@ -303,7 +303,7 @@ void file_recv_chunk_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, 
 
     if (!file.file->is_open())
     {
-        file.file->open(file.file_name, std::ios::out | std::ios::trunc);
+        file.file->open("downloads/" + file.file_name, std::ios::out | std::ios::trunc);
         log("abriu file");
         if (!file.file->is_open())
         {

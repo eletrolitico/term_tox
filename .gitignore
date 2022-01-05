@@ -14,3 +14,7 @@ savedata.tox
 /shared/*
 /shared/.*
 !/shared/.keep
+
+/downloads/*
+/downloads/.*
+!/downloads/.keep
