@@ -4,6 +4,7 @@
 #include <tox/tox.h>
 #include <vector>
 #include <thread>
+#include <memory>
 
 #define PORT_RANGE_START 33445 // tox listen port range
 #define PORT_RANGE_END 34445
