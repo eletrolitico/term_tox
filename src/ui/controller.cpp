@@ -38,7 +38,7 @@ namespace ui
         getmaxyx(stdscr, this->yMax, this->xMax);
 
         //attr_on(COLOR_PAIR(1), nullptr);
-        printw("Aperte F4 para sair");
+        printw("Press F4 to exit");
         //attr_off(COLOR_PAIR(1), nullptr);
 
         refresh();
