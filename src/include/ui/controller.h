@@ -12,19 +12,23 @@ namespace ui
     class Controller
     {
     public:
+        Controller(const Controller&) = delete;
+        
         static Controller *get_instance(ToxHandler *);
         void update(int ch);
 
         ~Controller();
 
     private:
-        static Controller *_main;
+        Controller();
         Controller(ToxHandler *);
 
-        int yMax, xMax;
-        std::unique_ptr<Menu> menu;
-        StatusBar *status_bar;
-        std::vector<BaseWindow *> windows;
+        static Controller *main_;
+        
+        int y_max_, x_max_;
+        std::unique_ptr<Menu> menu_;
+        StatusBar *status_bar_;
+        std::vector<BaseWindow *> windows_;
     };
 
 }

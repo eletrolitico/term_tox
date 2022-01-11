@@ -21,8 +21,8 @@ namespace ui
             VIEWING_REQUEST
         };
 
-        uint8_t selected_request{0};
-        State state{State::LIST};
+        uint8_t selected_request_{0};
+        State state_{State::LIST};
 
         void do_go_up();
         void do_go_down();

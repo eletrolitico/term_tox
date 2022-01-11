@@ -32,11 +32,11 @@ namespace ui
     void Options::draw_list()
     {
 
-        for (size_t i = 0; i < options.size(); ++i)
+        for (size_t i = 0; i < options_.size(); ++i)
         {
-            auto opt = options[i];
+            auto opt = options_[i];
 
-            if (selected_option == i)
+            if (selected_option_ == i)
                 wattron(win, A_STANDOUT);
             mvwprintw(win, i + 2, SPACE_LEFT, opt.c_str());
             wattroff(win, A_STANDOUT);
@@ -45,7 +45,7 @@ namespace ui
 
     void Options::draw_option()
     {
-        mvwprintw(win, 2, 1, (options[selected_option] + ": " + typing).c_str());
+        mvwprintw(win, 2, 1, (options_[selected_option_] + ": " + typing_).c_str());
     }
 
     bool Options::update(const int &ch)
@@ -78,26 +78,26 @@ namespace ui
 
     void Options::do_go_up()
     {
-        if (state == State::LIST && selected_option > 0)
-            --selected_option;
+        if (state == State::LIST && selected_option_ > 0)
+            --selected_option_;
     }
 
     void Options::do_go_down()
     {
-        if (state == State::LIST && selected_option < options.size() - 1)
-            ++selected_option;
+        if (state == State::LIST && selected_option_ < options_.size() - 1)
+            ++selected_option_;
     }
 
     void Options::do_default(int ch)
     {
         if (state == State::EDITING_OPTION && isprint(ch))
-            typing += (char)ch;
+            typing_ += (char)ch;
     }
 
     void Options::do_backspace()
     {
-        if (typing.size())
-            typing.pop_back();
+        if (typing_.size())
+            typing_.pop_back();
     }
 
     void Options::do_enter()
@@ -120,24 +120,24 @@ namespace ui
 
     void Options::save_option()
     {
-        switch (selected_option)
+        switch (selected_option_)
         {
         case 0:
-            t_hand->set_name(typing);
+            t_hand_->set_name(typing_);
             break;
         case 1:
-            t_hand->set_status_message(typing);
+            t_hand_->set_status_message(typing_);
             break;
         }
         state = State::LIST;
-        typing = "";
+        typing_ = "";
     }
 
     void Options::do_esc_key()
     {
         curs_set(0);
         state = State::LIST;
-        typing = "";
+        typing_ = "";
     }
 
 } // namespace ui

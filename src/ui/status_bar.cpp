@@ -11,17 +11,17 @@ namespace ui
     {
         std::string tk_to = "no one";
 
-        if (talking_to != nullptr)
+        if (talking_to_ != nullptr)
         {
-            tk_to = std::string(talking_to->name);
+            tk_to = std::string(talking_to_->name_);
         }
 
         werase(win);
         box(win, 0, 0);
-        mvwprintw(win, 1, 2, (t_hand->get_self_name() + " - " + t_hand->get_self_status()).c_str());
+        mvwprintw(win, 1, 2, (t_hand_->get_self_name() + " - " + t_hand_->get_self_status()).c_str());
         wprintw(win, " | Talking to %s", tk_to.c_str());
 
-        const std::string msg = "Your Tox Address: " + t_hand->get_self_tox_address();
+        const std::string msg = "Your Tox Address: " + t_hand_->get_self_tox_address();
         mvwprintw(win, 2, 2, msg.c_str());
 
         wrefresh(win);

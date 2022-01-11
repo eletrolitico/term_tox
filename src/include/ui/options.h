@@ -21,11 +21,11 @@ namespace ui
             EDITING_OPTION
         };
 
-        uint8_t selected_option{0};
+        uint8_t selected_option_{0};
         State state{State::LIST};
-        std::string typing{""};
+        std::string typing_{""};
 
-        const std::vector<std::string> options = {
+        const std::vector<std::string> options_ = {
             "Name",
             "Status message",
         };

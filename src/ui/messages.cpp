@@ -16,7 +16,7 @@ namespace ui
         werase(win);
         box(win, 0, 0);
 
-        if (talking_to == nullptr)
+        if (talking_to_ == nullptr)
         {
             draw_no_friend();
         }
@@ -30,21 +30,21 @@ namespace ui
 
     void Messages::draw_messages()
     {
-        auto msgs = t_hand->get_messages(talking_to->friend_num);
-        std::string tmp = "message: " + typing;
+        auto msgs = t_hand_->get_messages(talking_to_->friend_num_);
+        std::string tmp = "message: " + typing_;
         int msgLines = tmp.size() / (get_width() - 2) + 1;
 
         int msgPos = get_height() - 3 - msgLines;
 
         for (auto msg : msgs | std::views::reverse)
         {
-            auto prefix = msg.first == MESSAGE::SENT ? "Voce: " : std::string(talking_to->name) + ": ";
+            auto prefix = msg.first == MESSAGE::SENT ? "Voce: " : std::string(talking_to_->name_) + ": ";
             msgPos -= draw_line_with_break(msgPos, 2, get_width() - 2, prefix + msg.second) + 1;
             if (msgPos <= 1)
                 break;
         }
 
-        draw_line_with_break(get_height() - 2, 2, get_width() - 2, "message: " + typing);
+        draw_line_with_break(get_height() - 2, 2, get_width() - 2, "message: " + typing_);
     }
 
     void Messages::draw_no_friend()
@@ -79,32 +79,32 @@ namespace ui
     void Messages::do_default(int ch)
     {
         if (isprint(ch))
-            typing += (char)ch;
+            typing_ += (char)ch;
     }
 
     void Messages::do_erase()
     {
-        if (typing.size())
-            typing.pop_back();
+        if (typing_.size())
+            typing_.pop_back();
     }
 
     void Messages::do_go_up()
     {
-        ++scroll;
+        ++scroll_;
     }
 
     void Messages::do_go_down()
     {
-        if (scroll > 0)
-            --scroll;
+        if (scroll_ > 0)
+            --scroll_;
     }
 
     void Messages::do_enter()
     {
-        if (typing.size() && talking_to != nullptr)
+        if (typing_.size() && talking_to_ != nullptr)
         {
-            t_hand->send_message(talking_to->friend_num, typing);
-            typing = "";
+            t_hand_->send_message(talking_to_->friend_num_, typing_);
+            typing_ = "";
         }
     }
 

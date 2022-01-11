@@ -12,7 +12,7 @@
 
 namespace ui
 {
-    Controller *Controller::_main = nullptr;
+    Controller *Controller::main_ = nullptr;
 
     Controller::Controller(ToxHandler *t_hand)
     {
@@ -35,7 +35,7 @@ namespace ui
 
         keypad(stdscr, TRUE);
 
-        getmaxyx(stdscr, this->yMax, this->xMax);
+        getmaxyx(stdscr, this->y_max_, this->x_max_);
 
         //attr_on(COLOR_PAIR(1), nullptr);
         printw("Press F4 to exit");
@@ -44,47 +44,47 @@ namespace ui
         refresh();
 
         BaseWindow::setToxHandler(t_hand);
-        BaseWindow::setDims(this->xMax, this->yMax - 8, 8);
+        BaseWindow::setDims(this->x_max_, this->y_max_ - 8, 8);
 
-        this->menu = std::make_unique<Menu>(this->xMax, 3);
+        this->menu_ = std::make_unique<Menu>(this->x_max_, 3);
 
-        this->menu->add_window(new Friends());
-        this->menu->add_window(new Requests());
-        this->menu->add_window(new Messages());
-        this->menu->add_window(new Options());
+        this->menu_->add_window(new Friends());
+        this->menu_->add_window(new Requests());
+        this->menu_->add_window(new Messages());
+        this->menu_->add_window(new Options());
 
-        this->menu->draw();
-        this->menu->get_window(0)->draw();
+        this->menu_->draw();
+        this->menu_->get_window(0)->draw();
 
-        this->status_bar = new StatusBar(this->xMax, 4, 4);
-        this->status_bar->draw();
+        this->status_bar_ = new StatusBar(this->x_max_, 4, 4);
+        this->status_bar_->draw();
     }
 
     Controller *Controller::get_instance(ToxHandler *t)
     {
-        if (_main == nullptr)
-            _main = new Controller(t);
+        if (main_ == nullptr)
+            main_ = new Controller(t);
 
-        return _main;
+        return main_;
     }
 
     void Controller::update(int ch)
     {
-        BaseWindow *sel = menu->get_selected_window(ch);
-        menu->draw();
+        BaseWindow *sel = menu_->get_selected_window(ch);
+        menu_->draw();
 
         bool shouldDraw = sel->update(ch);
 
         if (shouldDraw)
         {
-            this->status_bar->draw();
+            this->status_bar_->draw();
             sel->draw();
         }
     }
 
     Controller::~Controller()
     {
-        for (auto e : windows)
+        for (auto e : windows_)
             delete e;
 
         endwin();

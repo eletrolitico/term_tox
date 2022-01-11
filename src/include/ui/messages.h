@@ -25,8 +25,8 @@ namespace ui
         }
 
     private:
-        std::string typing{""};
-        uint32_t scroll{0};
+        std::string typing_{""};
+        uint32_t scroll_{0};
 
         void do_go_up();
         void do_go_down();

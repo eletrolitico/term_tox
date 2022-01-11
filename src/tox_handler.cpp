@@ -15,12 +15,12 @@
 
 namespace fs = std::filesystem;
 
-std::unordered_map<int, std::vector<std::pair<MESSAGE, std::string>>> mMessages;
+std::unordered_map<int, std::vector<std::pair<MESSAGE, std::string>>> messages_;
 
-uint32_t avg_tox_sleep_time = 0;
-Tox *mTox = nullptr;
-Friend self;
-std::vector<Friend *> mFriends;
+uint32_t avg_tox_sleep_time_ = 0;
+Tox *tox = nullptr;
+Friend self_;
+std::vector<Friend *> friends;
 std::vector<Request> mRequests;
 std::unordered_map<uint64_t, ToxFile> mFiles;
 const char *savedata_filename = "./savedata.tox";
@@ -32,10 +32,10 @@ void (*iface_update_cb)();
 
 ToxFile::ToxFile(std::shared_ptr<std::fstream> file, uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction)
 {
-    this->file_num = FileNum;
-    this->friend_num = FriendId;
-    this->file_name = FileName;
-    this->file = file;
+    this->file_num_ = FileNum;
+    this->friend_num_ = FriendId;
+    this->file_name_ = FileName;
+    this->file_ = file;
 }
 
 /*******************************************************************************
@@ -46,8 +46,8 @@ ToxFile::ToxFile(std::shared_ptr<std::fstream> file, uint32_t FileNum, uint32_t 
 
 Friend *getfriend(uint32_t fid)
 {
-    for (Friend *fnd : mFriends)
-        if (fnd->friend_num == fid)
+    for (Friend *fnd : friends)
+        if (fnd->friend_num_ == fid)
         {
             return fnd;
             break;
@@ -111,9 +111,9 @@ void update_savedata_file(void)
     if (!(savedata_filename && savedata_tmp_filename))
         return;
 
-    size_t size = tox_get_savedata_size(mTox);
+    size_t size = tox_get_savedata_size(tox);
     char *savedata = (char *)malloc(size);
-    tox_get_savedata(mTox, (uint8_t *)savedata);
+    tox_get_savedata(tox, (uint8_t *)savedata);
 
     FILE *f = fopen(savedata_tmp_filename, "wb");
     fwrite(savedata, size, 1, f);
@@ -170,7 +170,7 @@ void download_files(std::vector<std::string> files, uint32_t friend_num)
         file->seekg(0, std::ios::beg);
 
         TOX_ERR_FILE_SEND err;
-        uint32_t file_num = tox_file_send(mTox, friend_num, TOX_FILE_KIND_DATA, f_size, 0, (uint8_t *)f.c_str(), f.size(), &err);
+        uint32_t file_num = tox_file_send(tox, friend_num, TOX_FILE_KIND_DATA, f_size, 0, (uint8_t *)f.c_str(), f.size(), &err);
         if (err != TOX_ERR_FILE_SEND_OK)
         {
             log("tox_file_send falhou com cod " + std::to_string(err));
@@ -178,7 +178,7 @@ void download_files(std::vector<std::string> files, uint32_t friend_num)
         }
 
         ToxFile tox_file{file, file_num, friend_num, f, ToxFile::SENDING};
-        tox_file_get_file_id(mTox, friend_num, file_num, tox_file.file_id, nullptr);
+        tox_file_get_file_id(tox, friend_num, file_num, tox_file.file_id_, nullptr);
 
         mFiles[file_num] = tox_file;
     }
@@ -226,8 +226,8 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
     }
     else
     {
-        f->hist.push_back(msg);
-        mMessages[friend_num].push_back({MESSAGE::RECEIVED, msg});
+        f->hist_.push_back(msg);
+        messages_[friend_num].push_back({MESSAGE::RECEIVED, msg});
 
         iface_update_cb();
     }
@@ -244,7 +244,7 @@ void file_recv_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint32
     }
 
     ToxFile tox_file{std::make_shared<std::fstream>(), file_number, friend_number, std::string((char *)filename), ToxFile::RECEIVING};
-    tox_file_get_file_id(mTox, friend_number, file_number, tox_file.file_id, nullptr);
+    tox_file_get_file_id(tox, friend_number, file_number, tox_file.file_id_, nullptr);
 
     mFiles[file_number] = tox_file;
 }
@@ -253,7 +253,7 @@ void file_recv_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint32
 void file_chunk_request_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint64_t position, size_t length, void *user_data)
 {
     auto file = mFiles[file_number];
-    if (!file.file)
+    if (!file.file_)
     {
         log("There isn't a file");
         tox_file_send_chunk(tox, friend_number, file_number, position, nullptr, 0, nullptr);
@@ -262,23 +262,23 @@ void file_chunk_request_cb(Tox *tox, uint32_t friend_number, uint32_t file_numbe
 
     if (!length)
     {
-        file.status = ToxFile::FINISHED;
-        file.file->close();
+        file.status_ = ToxFile::FINISHED;
+        file.file_->close();
         return;
     }
 
     std::unique_ptr<uint8_t[]> data(new uint8_t[length]);
     int64_t nread;
 
-    file.file->seekg(position);
-    file.file->read(reinterpret_cast<char *>(data.get()), length);
-    nread = file.file->gcount();
+    file.file_->seekg(position);
+    file.file_->read(reinterpret_cast<char *>(data.get()), length);
+    nread = file.file_->gcount();
 
-    if (nread <= 0 || file.file->eof())
+    if (nread <= 0 || file.file_->eof())
     {
         log("Failed to read from file");
         tox_file_send_chunk(tox, friend_number, file_number, position, nullptr, 0, nullptr);
-        file.file->close();
+        file.file_->close();
         return;
     }
 
@@ -296,23 +296,23 @@ void file_recv_chunk_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, 
 
     if (!length)
     {
-        file.status = ToxFile::FINISHED;
-        file.file->close();
+        file.status_ = ToxFile::FINISHED;
+        file.file_->close();
         return;
     }
 
-    if (!file.file->is_open())
+    if (!file.file_->is_open())
     {
-        file.file->open("downloads/" + file.file_name, std::ios::out | std::ios::trunc);
+        file.file_->open("downloads/" + file.file_name_, std::ios::out | std::ios::trunc);
         log("abriu file");
-        if (!file.file->is_open())
+        if (!file.file_->is_open())
         {
             log("deu ruim open file");
             return;
         }
     }
 
-    file.file->write(reinterpret_cast<const char *>(data), length);
+    file.file_->write(reinterpret_cast<const char *>(data), length);
 }
 
 // talvez n precisa
@@ -326,8 +326,8 @@ void friend_name_cb(Tox *tox, uint32_t friend_num, const uint8_t *name, size_t l
 
     if (f)
     {
-        f->name = (char *)realloc(f->name, length + 1);
-        sprintf(f->name, "%.*s", (int)length, (char *)name);
+        f->name_ = (char *)realloc(f->name_, length + 1);
+        sprintf(f->name_, "%.*s", (int)length, (char *)name);
     }
     iface_update_cb();
 }
@@ -337,8 +337,8 @@ void friend_status_message_cb(Tox *tox, uint32_t friend_num, const uint8_t *mess
     Friend *f = getfriend(friend_num);
     if (f)
     {
-        f->status_message = (char *)realloc(f->status_message, length + 1);
-        sprintf(f->status_message, "%.*s", (int)length, (char *)message);
+        f->status_message_ = (char *)realloc(f->status_message_, length + 1);
+        sprintf(f->status_message_, "%.*s", (int)length, (char *)message);
     }
     iface_update_cb();
 }
@@ -348,7 +348,7 @@ void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION c
     Friend *f = getfriend(friend_num);
     if (f)
     {
-        f->connection = connection_status;
+        f->connection_ = connection_status;
     }
     iface_update_cb();
 }
@@ -357,11 +357,11 @@ void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *messa
 {
     Request req;
 
-    req.id = 1 + (mRequests.size() ? mRequests.at(mRequests.size() - 1).id : 0);
-    req.is_friend_request = true;
-    memcpy(req.userdata.pubkey, public_key, TOX_PUBLIC_KEY_SIZE);
-    req.msg = (char *)malloc(length + 1);
-    sprintf(req.msg, "%.*s", (int)length, (char *)message);
+    req.id_ = 1 + (mRequests.size() ? mRequests.at(mRequests.size() - 1).id_ : 0);
+    req.is_friend_request_ = true;
+    memcpy(req.user_data_.public_key, public_key, TOX_PUBLIC_KEY_SIZE);
+    req.msg_ = (char *)malloc(length + 1);
+    sprintf(req.msg_, "%.*s", (int)length, (char *)message);
 
     mRequests.push_back(req);
     iface_update_cb();
@@ -369,7 +369,7 @@ void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *messa
 
 void self_connection_status_cb(Tox *tox, TOX_CONNECTION connection_status, void *user_data)
 {
-    self.connection = connection_status;
+    self_.connection_ = connection_status;
     log("[INFO]: Fiquei online");
     iface_update_cb();
 }
@@ -432,7 +432,7 @@ void ToxHandler::create_tox()
             tox_options_set_savedata_type(&options, TOX_SAVEDATA_TYPE_TOX_SAVE);
             tox_options_set_savedata_data(&options, (uint8_t *)savedata, fsize);
 
-            mTox = tox_new(&options, &err_new);
+            tox = tox_new(&options, &err_new);
             if (err_new != TOX_ERR_NEW_OK)
             {
                 fprintf(stderr, "tox_new failed with error code %d\n", err_new);
@@ -443,9 +443,9 @@ void ToxHandler::create_tox()
         }
     }
 
-    if (!mTox)
+    if (!tox)
     {
-        mTox = tox_new(&options, &err_new);
+        tox = tox_new(&options, &err_new);
         if (err_new != TOX_ERR_NEW_OK)
         {
             fprintf(stderr, "tox_new failed with error code %d\n", err_new);
@@ -454,29 +454,29 @@ void ToxHandler::create_tox()
     }
 
     uint8_t tox_id_bin[TOX_ADDRESS_SIZE];
-    tox_self_get_address(mTox, tox_id_bin);
+    tox_self_get_address(tox, tox_id_bin);
 
     char tox_id[TOX_ADDRESS_SIZE * 2 + 1];
     sodium_bin2hex(tox_id, TOX_ADDRESS_SIZE * 2 + 1, tox_id_bin, TOX_ADDRESS_SIZE);
 
-    m_self_tox_address = std::string(tox_id);
+    m_self_tox_address_ = std::string(tox_id);
 }
 
 Friend *ToxHandler::add_friend(uint32_t fNum)
 {
     Friend *f = (Friend *)calloc(1, sizeof(Friend));
-    f->friend_num = fNum;
-    f->connection = TOX_CONNECTION_NONE;
-    tox_friend_get_public_key(mTox, fNum, f->pubkey, nullptr);
-    mFriends.push_back(f);
+    f->friend_num_ = fNum;
+    f->connection_ = TOX_CONNECTION_NONE;
+    tox_friend_get_public_key(tox, fNum, f->public_key, nullptr);
+    friends.push_back(f);
     return f;
 }
 
 void ToxHandler::init_friends()
 {
-    size_t sz = tox_self_get_friend_list_size(mTox);
+    size_t sz = tox_self_get_friend_list_size(tox);
     uint32_t *friend_list = (uint32_t *)malloc(sizeof(uint32_t) * sz);
-    tox_self_get_friend_list(mTox, friend_list);
+    tox_self_get_friend_list(tox, friend_list);
 
     size_t len;
 
@@ -485,29 +485,29 @@ void ToxHandler::init_friends()
         uint32_t friend_num = friend_list[i];
         Friend *f = add_friend(friend_num);
 
-        len = tox_friend_get_name_size(mTox, friend_num, nullptr) + 1;
-        f->name = (char *)calloc(1, len);
-        tox_friend_get_name(mTox, friend_num, (uint8_t *)f->name, nullptr);
+        len = tox_friend_get_name_size(tox, friend_num, nullptr) + 1;
+        f->name_ = (char *)calloc(1, len);
+        tox_friend_get_name(tox, friend_num, (uint8_t *)f->name_, nullptr);
 
-        len = tox_friend_get_status_message_size(mTox, friend_num, nullptr) + 1;
-        f->status_message = (char *)calloc(1, len);
-        tox_friend_get_status_message(mTox, friend_num, (uint8_t *)f->status_message, nullptr);
+        len = tox_friend_get_status_message_size(tox, friend_num, nullptr) + 1;
+        f->status_message_ = (char *)calloc(1, len);
+        tox_friend_get_status_message(tox, friend_num, (uint8_t *)f->status_message_, nullptr);
 
-        tox_friend_get_public_key(mTox, friend_num, f->pubkey, nullptr);
+        tox_friend_get_public_key(tox, friend_num, f->public_key, nullptr);
     }
     free(friend_list);
 
     // add self
-    self.friend_num = UINT32_MAX;
-    len = tox_self_get_name_size(mTox) + 1;
-    self.name = (char *)calloc(1, len);
-    tox_self_get_name(mTox, (uint8_t *)self.name);
+    self_.friend_num_ = UINT32_MAX;
+    len = tox_self_get_name_size(tox) + 1;
+    self_.name_ = (char *)calloc(1, len);
+    tox_self_get_name(tox, (uint8_t *)self_.name_);
 
-    len = tox_self_get_status_message_size(mTox) + 1;
-    self.status_message = (char *)calloc(1, len);
-    tox_self_get_status_message(mTox, (uint8_t *)self.status_message);
+    len = tox_self_get_status_message_size(tox) + 1;
+    self_.status_message_ = (char *)calloc(1, len);
+    tox_self_get_status_message(tox, (uint8_t *)self_.status_message_);
 
-    tox_self_get_public_key(mTox, self.pubkey);
+    tox_self_get_public_key(tox, self_.public_key);
 }
 
 void ToxHandler::update_savedata_file()
@@ -515,9 +515,9 @@ void ToxHandler::update_savedata_file()
     if (!(savedata_filename && savedata_tmp_filename))
         return;
 
-    size_t size = tox_get_savedata_size(mTox);
+    size_t size = tox_get_savedata_size(tox);
     char *savedata = (char *)malloc(size);
-    tox_get_savedata(mTox, (uint8_t *)savedata);
+    tox_get_savedata(tox, (uint8_t *)savedata);
 
     FILE *f = fopen(savedata_tmp_filename, "wb");
     fwrite(savedata, size, 1, f);
@@ -542,18 +542,18 @@ void ToxHandler::bootstrap()
     {
         struct bootstrap_node *d = &bootstrap_nodes[j++ % COUNTOF(bootstrap_nodes)];
         // do not add IPv6 bootstrap nodes if IPv6 is not enabled
-        if (d->ipv6)
+        if (d->ipv6_)
         {
             continue;
         }
         TOX_ERR_BOOTSTRAP btErr;
         bool ok;
-        ok = tox_bootstrap(mTox, d->address, d->port_udp, d->key, &btErr);
+        ok = tox_bootstrap(tox, d->address_, d->port_udp_, d->key_, &btErr);
         if (btErr != TOX_ERR_BOOTSTRAP_OK || !ok)
         {
             printf("err bootstrap: %d", btErr);
         }
-        ok = tox_add_tcp_relay(mTox, d->address, d->port_tcp, d->key, &btErr);
+        ok = tox_add_tcp_relay(tox, d->address_, d->port_tcp_, d->key_, &btErr);
         if (btErr != TOX_ERR_BOOTSTRAP_OK || !ok)
         {
             printf("err bootstrap relay: %d", btErr);
@@ -567,18 +567,18 @@ void ToxHandler::setup_tox()
     create_tox();
 
     // register callbacks
-    tox_callback_self_connection_status(mTox, self_connection_status_cb);
-    tox_callback_friend_request(mTox, friend_request_cb);
-    tox_callback_friend_message(mTox, friend_message_cb);
-    tox_callback_friend_name(mTox, friend_name_cb);
-    tox_callback_friend_status_message(mTox, friend_status_message_cb);
-    tox_callback_friend_connection_status(mTox, friend_connection_status_cb);
+    tox_callback_self_connection_status(tox, self_connection_status_cb);
+    tox_callback_friend_request(tox, friend_request_cb);
+    tox_callback_friend_message(tox, friend_message_cb);
+    tox_callback_friend_name(tox, friend_name_cb);
+    tox_callback_friend_status_message(tox, friend_status_message_cb);
+    tox_callback_friend_connection_status(tox, friend_connection_status_cb);
 
     // files
-    tox_callback_file_chunk_request(mTox, file_chunk_request_cb);
-    tox_callback_file_recv_chunk(mTox, file_recv_chunk_cb);
-    tox_callback_file_recv_control(mTox, file_recv_control_cb);
-    tox_callback_file_recv(mTox, file_recv_cb);
+    tox_callback_file_chunk_request(tox, file_chunk_request_cb);
+    tox_callback_file_recv_chunk(tox, file_recv_chunk_cb);
+    tox_callback_file_recv_control(tox, file_recv_control_cb);
+    tox_callback_file_recv(tox, file_recv_cb);
 
     bootstrap();
     init_friends();
@@ -586,22 +586,22 @@ void ToxHandler::setup_tox()
 
 void ToxHandler::set_name(const std::string &str)
 {
-    tox_self_set_name(mTox, (uint8_t *)str.c_str(), str.size(), nullptr);
+    tox_self_set_name(tox, (uint8_t *)str.c_str(), str.size(), nullptr);
 
-    if (self.name)
-        free(self.name);
-    self.name = (char *)malloc((str.size() + 1) * sizeof(char));
-    strcpy(self.name, str.c_str());
+    if (self_.name_)
+        free(self_.name_);
+    self_.name_ = (char *)malloc((str.size() + 1) * sizeof(char));
+    strcpy(self_.name_, str.c_str());
 }
 
 void ToxHandler::set_status_message(const std::string &str)
 {
-    tox_self_set_status_message(mTox, (uint8_t *)str.c_str(), str.size(), nullptr);
+    tox_self_set_status_message(tox, (uint8_t *)str.c_str(), str.size(), nullptr);
 
-    if (self.status_message)
-        free(self.status_message);
-    self.status_message = (char *)malloc((str.size() + 1) * sizeof(char));
-    strcpy(self.status_message, str.c_str());
+    if (self_.status_message_)
+        free(self_.status_message_);
+    self_.status_message_ = (char *)malloc((str.size() + 1) * sizeof(char));
+    strcpy(self_.status_message_, str.c_str());
 }
 
 std::vector<Request> ToxHandler::get_requests()
@@ -611,7 +611,7 @@ std::vector<Request> ToxHandler::get_requests()
 
 std::vector<Friend *> &ToxHandler::get_friends()
 {
-    return mFriends;
+    return friends;
 }
 
 Friend *ToxHandler::get_friend(uint32_t fNum)
@@ -622,7 +622,7 @@ Friend *ToxHandler::get_friend(uint32_t fNum)
 void ToxHandler::send_message(uint32_t fNum, const std::string &msg, bool add_to_msg)
 {
     TOX_ERR_FRIEND_SEND_MESSAGE err;
-    tox_friend_send_message(mTox, fNum, TOX_MESSAGE_TYPE_NORMAL, (uint8_t *)msg.c_str(), msg.length(), &err);
+    tox_friend_send_message(tox, fNum, TOX_MESSAGE_TYPE_NORMAL, (uint8_t *)msg.c_str(), msg.length(), &err);
     if (err != TOX_ERR_FRIEND_SEND_MESSAGE_OK)
     {
         log("Erro ao mandar msg: " + std::to_string(err));
@@ -630,7 +630,7 @@ void ToxHandler::send_message(uint32_t fNum, const std::string &msg, bool add_to
     }
 
     if (add_to_msg)
-        mMessages[fNum].push_back({MESSAGE::SENT, msg});
+        messages_[fNum].push_back({MESSAGE::SENT, msg});
 }
 
 TOX_ERR_FRIEND_ADD ToxHandler::add_friend(const std::string &toxID, const std::string &msg)
@@ -641,7 +641,7 @@ TOX_ERR_FRIEND_ADD ToxHandler::add_friend(const std::string &toxID, const std::s
     sodium_hex2bin(tox_id_bin, TOX_ADDRESS_SIZE, tox_id, strnlen(tox_id, TOX_ADDRESS_SIZE * 2 + 1), nullptr, nullptr, nullptr);
 
     TOX_ERR_FRIEND_ADD err;
-    uint32_t friend_num = tox_friend_add(mTox, tox_id_bin, (uint8_t *)msg.c_str(), msg.length(), &err);
+    uint32_t friend_num = tox_friend_add(tox, tox_id_bin, (uint8_t *)msg.c_str(), msg.length(), &err);
 
     if (err != TOX_ERR_FRIEND_ADD_OK)
     {
@@ -656,7 +656,7 @@ TOX_ERR_FRIEND_ADD ToxHandler::add_friend(const std::string &toxID, const std::s
 uint32_t ToxHandler::accept_request(Request req)
 {
     TOX_ERR_FRIEND_ADD err;
-    uint32_t friend_num = tox_friend_add_norequest(mTox, req.userdata.pubkey, &err);
+    uint32_t friend_num = tox_friend_add_norequest(tox, req.user_data_.public_key, &err);
     if (err != TOX_ERR_FRIEND_ADD_OK)
     {
         printf("! accept friend request failed, errcode:%d", err);
@@ -669,7 +669,7 @@ uint32_t ToxHandler::accept_request(Request req)
 
 std::string ToxHandler::get_self_status()
 {
-    return std::string(ToxHandler::connection_enum2text(self.connection));
+    return std::string(ToxHandler::connection_enum2text(self_.connection_));
 }
 
 void iterate_tox()
@@ -677,38 +677,38 @@ void iterate_tox()
     uint32_t tmp;
     while (is_running)
     {
-        tox_iterate(mTox, nullptr);
-        tmp = tox_iteration_interval(mTox);
+        tox_iterate(tox, nullptr);
+        tmp = tox_iteration_interval(tox);
 
-        if (avg_tox_sleep_time == 0)
+        if (avg_tox_sleep_time_ == 0)
         {
-            avg_tox_sleep_time = tmp;
+            avg_tox_sleep_time_ = tmp;
         }
         else
         {
-            avg_tox_sleep_time += tmp;
-            avg_tox_sleep_time /= 2;
+            avg_tox_sleep_time_ += tmp;
+            avg_tox_sleep_time_ /= 2;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(tmp));
     }
 
     update_savedata_file();
-    tox_kill(mTox);
+    tox_kill(tox);
     printf("terminating thread\n");
 }
 
 std::string ToxHandler::get_self_name()
 {
-    return std::string(self.name);
+    return std::string(self_.name_);
 }
 std::string ToxHandler::get_self_tox_address()
 {
-    return m_self_tox_address;
+    return m_self_tox_address_;
 }
 std::string ToxHandler::get_self_status_message()
 {
-    return std::string(self.status_message);
+    return std::string(self_.status_message_);
 }
 
 ToxHandler::ToxHandler()
@@ -719,33 +719,33 @@ ToxHandler::ToxHandler()
         set_name("Toxer");
     }
     is_running = true;
-    m_tox_thread = new std::thread(iterate_tox);
+    m_tox_thread_ = new std::thread(iterate_tox);
 }
 
 ToxHandler::~ToxHandler()
 {
     is_running = false;
-    m_tox_thread->join();
-    delete m_tox_thread;
+    m_tox_thread_->join();
+    delete m_tox_thread_;
 }
 
 std::string Friend::get_pub_key()
 {
     char key[TOX_PUBLIC_KEY_SIZE * 2 + 1];
-    sodium_bin2hex(key, TOX_PUBLIC_KEY_SIZE * 2 + 1, this->pubkey, TOX_PUBLIC_KEY_SIZE);
+    sodium_bin2hex(key, TOX_PUBLIC_KEY_SIZE * 2 + 1, this->public_key, TOX_PUBLIC_KEY_SIZE);
     return std::string(key);
 }
 
 std::string Request::get_pub_key()
 {
     char key[TOX_PUBLIC_KEY_SIZE * 2 + 1];
-    sodium_bin2hex(key, TOX_PUBLIC_KEY_SIZE * 2 + 1, this->userdata.pubkey, TOX_PUBLIC_KEY_SIZE);
+    sodium_bin2hex(key, TOX_PUBLIC_KEY_SIZE * 2 + 1, this->user_data_.public_key, TOX_PUBLIC_KEY_SIZE);
     return std::string(key);
 }
 
 uint32_t ToxHandler::get_avg_tox_sleep_time()
 {
-    return avg_tox_sleep_time;
+    return avg_tox_sleep_time_;
 }
 
 void ToxHandler::set_update_callback(void (*update_cb)())
@@ -755,5 +755,5 @@ void ToxHandler::set_update_callback(void (*update_cb)())
 
 std::vector<std::pair<MESSAGE, std::string>> ToxHandler::get_messages(uint32_t fNUm)
 {
-    return mMessages[fNUm];
+    return messages_[fNUm];
 }

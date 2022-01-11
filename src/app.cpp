@@ -13,9 +13,9 @@
 #include "tox_handler.h"
 
 // declaração de variáveis estáticas da BaseWindow
-ToxHandler *ui::BaseWindow::t_hand;
-int ui::BaseWindow::xMax, ui::BaseWindow::height, ui::BaseWindow::start_y;
-Friend *ui::BaseWindow::talking_to = nullptr;
+ToxHandler *ui::BaseWindow::t_hand_;
+int ui::BaseWindow::x_max_, ui::BaseWindow::height_, ui::BaseWindow::start_y_;
+Friend *ui::BaseWindow::talking_to_ = nullptr;
 
 // globals
 ToxHandler *tox_handler;

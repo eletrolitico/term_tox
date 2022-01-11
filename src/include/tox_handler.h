@@ -29,32 +29,32 @@ struct ToxFile
     };
 
     ToxFile(){};
-    ToxFile(std::shared_ptr<std::fstream> file, uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction);
+    ToxFile(std::shared_ptr<std::fstream> file, uint32_t file_num, uint32_t friend_id, std::string file_name, FileDirection direction);
 
-    uint32_t file_num;
-    uint32_t friend_num;
-    std::string file_name;
-    std::shared_ptr<std::fstream> file;
-    FileStatus status;
-    FileDirection direction;
-    uint8_t file_id[TOX_FILE_ID_LENGTH];
+    uint32_t file_num_;
+    uint32_t friend_num_;
+    std::string file_name_;
+    std::shared_ptr<std::fstream> file_;
+    FileStatus status_;
+    FileDirection direction_;
+    uint8_t file_id_[TOX_FILE_ID_LENGTH];
 };
 
 typedef struct
 {
-    uint32_t friend_num;
-    char *name;
-    char *status_message;
-    uint8_t pubkey[TOX_PUBLIC_KEY_SIZE];
-    TOX_CONNECTION connection;
+    uint32_t friend_num_;
+    char *name_;
+    char *status_message_;
+    uint8_t public_key[TOX_PUBLIC_KEY_SIZE];
+    TOX_CONNECTION connection_;
 
-    std::vector<std::string> hist;
+    std::vector<std::string> hist_;
     std::string get_pub_key();
 } Friend;
 
 struct FriendUserData
 {
-    uint8_t pubkey[TOX_PUBLIC_KEY_SIZE];
+    uint8_t public_key[TOX_PUBLIC_KEY_SIZE];
 };
 
 enum class MESSAGE
@@ -65,10 +65,10 @@ enum class MESSAGE
 
 typedef struct
 {
-    char *msg;
-    uint32_t id;
-    bool is_friend_request;
-    FriendUserData userdata;
+    char *msg_;
+    uint32_t id_;
+    bool is_friend_request_;
+    FriendUserData user_data_;
     std::string get_pub_key();
 } Request;
 
@@ -104,8 +104,8 @@ public:
     static const char *add_friend_err_enum2text(TOX_ERR_FRIEND_ADD);
 
 private:
-    std::thread *m_tox_thread;
-    std::string m_self_tox_address;
+    std::thread *m_tox_thread_;
+    std::string m_self_tox_address_;
 
     void (*update_cb)();
     void setup_tox();

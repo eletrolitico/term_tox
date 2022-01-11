@@ -15,7 +15,7 @@ namespace ui
         werase(win);
         box(win, 0, 0);
 
-        switch (state)
+        switch (state_)
         {
         case State::LIST:
             draw_list();
@@ -30,7 +30,7 @@ namespace ui
 
     void Requests::draw_list()
     {
-        auto requests = t_hand->get_requests();
+        auto requests = t_hand_->get_requests();
 
         if (requests.empty())
             mvwprintw(win, 2, SPACE_LEFT, "You have no requests!");
@@ -39,20 +39,20 @@ namespace ui
         {
             auto r = requests[i];
 
-            if (selected_request == i)
+            if (selected_request_ == i)
                 wattron(win, A_STANDOUT);
-            mvwprintw(win, i + 2, SPACE_LEFT, "[%s] - %s", r.get_pub_key().c_str(), std::string(r.msg).substr(0, 20).c_str());
+            mvwprintw(win, i + 2, SPACE_LEFT, "[%s] - %s", r.get_pub_key().c_str(), std::string(r.msg_).substr(0, 20).c_str());
             wattroff(win, A_STANDOUT);
         }
     }
 
     void Requests::draw_request()
     {
-        auto requests = t_hand->get_requests();
-        auto r = requests[selected_request];
+        auto requests = t_hand_->get_requests();
+        auto r = requests[selected_request_];
 
         mvwprintw(win, 3, SPACE_LEFT, "Request from: %s", r.get_pub_key().c_str());
-        int next_y = draw_line_with_break(4, SPACE_LEFT, 20, "Message: " + std::string(r.msg));
+        int next_y = draw_line_with_break(4, SPACE_LEFT, 20, "Message: " + std::string(r.msg_));
         mvwprintw(win, next_y + 1, SPACE_LEFT, "<enter> to accept");
         mvwprintw(win, next_y + 2, SPACE_LEFT, "<del> to reject");
     }
@@ -81,38 +81,38 @@ namespace ui
 
     void Requests::do_go_up()
     {
-        if (state == State::LIST)
+        if (state_ == State::LIST)
         {
-            if (selected_request > 0)
-                --selected_request;
+            if (selected_request_ > 0)
+                --selected_request_;
             else
-                selected_request = t_hand->get_requests().size();
+                selected_request_ = t_hand_->get_requests().size();
         }
     }
 
     void Requests::do_go_down()
     {
-        if (state == State::LIST)
+        if (state_ == State::LIST)
         {
-            if (selected_request < t_hand->get_requests().size())
-                ++selected_request;
+            if (selected_request_ < t_hand_->get_requests().size())
+                ++selected_request_;
             else
-                selected_request = 0;
+                selected_request_ = 0;
         }
     }
 
     void Requests::do_enter()
     {
-        auto requests = t_hand->get_requests();
-        switch (state)
+        auto requests = t_hand_->get_requests();
+        switch (state_)
         {
         case State::LIST:
             if (requests.size())
-                state = State::VIEWING_REQUEST;
+                state_ = State::VIEWING_REQUEST;
             break;
         case State::VIEWING_REQUEST:
-            t_hand->accept_request(requests[selected_request]);
-            state = State::LIST;
+            t_hand_->accept_request(requests[selected_request_]);
+            state_ = State::LIST;
             break;
 
         default:
@@ -122,7 +122,7 @@ namespace ui
 
     void Requests::do_esc_key()
     {
-        state = State::LIST;
+        state_ = State::LIST;
     }
 
     int Requests::draw_line_with_break(int ini_y, int ini_x, int width, const std::string &str)

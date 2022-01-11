@@ -11,24 +11,24 @@ namespace ui
     class Menu
     {
     public:
-        Menu(int xMax, int h);
+        Menu(int x_max_x, int h);
         BaseWindow *get_selected_window(int ch);
         void draw();
 
         inline void add_window(BaseWindow *win)
         {
-            windows.push_back(win);
+            windows_.push_back(win);
         }
 
         inline BaseWindow *get_window(size_t i)
         {
-            return windows[i];
+            return windows_[i];
         }
 
     private:
-        WINDOW *win;
-        std::vector<BaseWindow *> windows;
-        uint8_t selected = 0, height, width;
+        WINDOW *win_;
+        std::vector<BaseWindow *> windows_;
+        uint8_t selected_ = 0, height_, width_;
     };
 }
 

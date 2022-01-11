@@ -5,7 +5,6 @@
 
 namespace ui
 {
-
     class Friends : public BaseWindow
     {
     public:
@@ -24,9 +23,9 @@ namespace ui
             FRIEND_ADDED
         };
 
-        uint8_t selected_friend{0};
-        State state{State::LIST};
-        std::string adding_tox_id{""}, adding_message{""}, frnd_added_msg{""};
+        uint8_t selected_friend_{0};
+        State state_{State::LIST};
+        std::string adding_tox_id_{""}, adding_message_{""}, frnd_added_msg_{""};
 
         // Interface drawing
         void draw_list();
