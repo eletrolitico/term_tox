@@ -9,35 +9,28 @@
 #include <fcntl.h>
 #include "unistd.h"
 
-#include "ui/controller.h"
+#include "ui/screen.h"
 #include "tox_handler.h"
 
-// declaração de variáveis estáticas da BaseWindow
-ToxHandler *ui::BaseWindow::t_hand_;
 int ui::BaseWindow::x_max_, ui::BaseWindow::height_, ui::BaseWindow::start_y_;
 Friend *ui::BaseWindow::talking_to_ = nullptr;
 
-// globals
-ToxHandler *tox_handler;
-ui::Controller *controller;
+//void draw_stuff() { screen.update('\0'); }
 
-void draw_stuff() { controller->update('\0'); }
-
-int main()
+inline void start_program()
 {
-    tox_handler = new ToxHandler();
-    controller = ui::Controller::get_instance(tox_handler);
-    tox_handler->set_update_callback(draw_stuff);
+    ui::Screen::get().update(0);
 
     while (int ch = getch())
     {
         if (ch == KEY_F(4))
             break;
-        controller->update(ch);
+        ui::Screen::get().update(ch);
     }
+}
 
-    delete controller;
-    delete tox_handler;
-
+int main()
+{
+    start_program();
     return 0;
 }

@@ -1,9 +1,10 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <string>
 #include <vector>
+#include <memory>
 #include <ncurses.h>
+
 #include "ui/base_window.h"
 
 namespace ui
@@ -11,23 +12,18 @@ namespace ui
     class Menu
     {
     public:
-        Menu(int x_max_x, int h);
-        BaseWindow *get_selected_window(int ch);
+        Menu(int x_max, int h);
+
+        BaseWindow* get_selected_window(int key);
+        
         void draw();
 
-        inline void add_window(BaseWindow *win)
-        {
-            windows_.push_back(win);
-        }
-
-        inline BaseWindow *get_window(size_t i)
-        {
-            return windows_[i];
-        }
+        void add_window(BaseWindow* window);
+        BaseWindow* get_window(size_t pos);
 
     private:
-        WINDOW *win_;
-        std::vector<BaseWindow *> windows_;
+        std::shared_ptr<WINDOW> win_;
+        std::vector< BaseWindow* > windows_;
         uint8_t selected_ = 0, height_, width_;
     };
 }

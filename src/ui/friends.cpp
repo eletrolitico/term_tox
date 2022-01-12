@@ -44,7 +44,7 @@ namespace ui
 
     void Friends::draw_list()
     {
-        auto friends = t_hand_->get_friends();
+        auto friends = ToxHandler::get().get_friends();
 
         if (friends.empty())
             mvwprintw(win, 2, SPACE_LEFT, "You have no friends!");
@@ -119,7 +119,7 @@ namespace ui
             if (selected_friend_ > 0)
                 --selected_friend_;
             else
-                selected_friend_ = t_hand_->get_friends().size();
+                selected_friend_ = ToxHandler::get().get_friends().size();
         }
     }
 
@@ -127,7 +127,7 @@ namespace ui
     {
         if (state_ == State::LIST)
         {
-            if (selected_friend_ < t_hand_->get_friends().size())
+            if (selected_friend_ < ToxHandler::get().get_friends().size())
                 ++selected_friend_;
             else
                 selected_friend_ = 0;
@@ -147,7 +147,7 @@ namespace ui
             }
             else
             {
-                talking_to_ = t_hand_->get_friends()[selected_friend_ - 1];
+                talking_to_ = ToxHandler::get().get_friends()[selected_friend_ - 1];
             }
             break;
 
@@ -157,7 +157,7 @@ namespace ui
 
         case State::TYPING_MESSAGE:
         {
-            auto err = t_hand_->add_friend(adding_tox_id_, adding_message_);
+            auto err = ToxHandler::get().add_friend(adding_tox_id_, adding_message_);
             frnd_added_msg_ = std::string(ToxHandler::add_friend_err_enum2text(err));
             curs_set(0);
             state_ = State::FRIEND_ADDED;

@@ -8,7 +8,7 @@ namespace ui
     class StatusBar : public BaseWindow
     {
     public:
-        StatusBar(int, int, int);
+        StatusBar(int x_max, int height, int start_y);
         void draw() override;
     };
 }

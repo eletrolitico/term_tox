@@ -36,21 +36,16 @@ namespace ui
             return true;
         }
 
-        inline static void setToxHandler(ToxHandler *t)
-        {
-            t_hand_ = t;
-        }
-
         inline std::string getTitle() const
         {
             return title_;
         }
 
-        inline static void setDims(int _xMax, int _height, int _start_y)
+        inline static void set_dimensions(int x_max, int height, int start_y)
         {
-            x_max_ = _xMax;
-            height_ = _height;
-            start_y_ = _start_y;
+            x_max_ = x_max;
+            height_ = height;
+            start_y_ = start_y;
         }
 
         inline int get_width()
@@ -73,8 +68,6 @@ namespace ui
         virtual void on_blur() {}
 
     protected:
-        static ToxHandler *t_hand_;
-
         static Friend *talking_to_;
         WINDOW *win;
 

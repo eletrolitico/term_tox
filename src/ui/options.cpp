@@ -123,10 +123,10 @@ namespace ui
         switch (selected_option_)
         {
         case 0:
-            t_hand_->set_name(typing_);
+            ToxHandler::get().set_name(typing_);
             break;
         case 1:
-            t_hand_->set_status_message(typing_);
+            ToxHandler::get().set_status_message(typing_);
             break;
         }
         state = State::LIST;

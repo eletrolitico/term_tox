@@ -21,22 +21,14 @@ uint32_t avg_tox_sleep_time_ = 0;
 Tox *tox = nullptr;
 Friend self_;
 std::vector<Friend *> friends;
-std::vector<Request> mRequests;
-std::unordered_map<uint64_t, ToxFile> mFiles;
-const char *savedata_filename = "./savedata.tox";
-const char *savedata_tmp_filename = "./savedata.tox.tmp";
-bool is_running = false;
+std::vector<Request> requests_;
+std::unordered_map<uint64_t, ToxFile> files_;
+const char *savedata_filename_ = "./savedata.tox";
+const char *savedata_tmp_filename_ = "./savedata.tox.tmp";
+bool is_running_ = false;
 
 // callback para atualizar a interface
 void (*iface_update_cb)();
-
-ToxFile::ToxFile(std::shared_ptr<std::fstream> file, uint32_t FileNum, uint32_t FriendId, std::string FileName, FileDirection Direction)
-{
-    this->file_num_ = FileNum;
-    this->friend_num_ = FriendId;
-    this->file_name_ = FileName;
-    this->file_ = file;
-}
 
 /*******************************************************************************
  *
@@ -44,7 +36,7 @@ ToxFile::ToxFile(std::shared_ptr<std::fstream> file, uint32_t FileNum, uint32_t 
  *
  ******************************************************************************/
 
-Friend *getfriend(uint32_t fid)
+Friend *get_friend(uint32_t fid)
 {
     for (Friend *fnd : friends)
         if (fnd->friend_num_ == fid)
@@ -108,26 +100,28 @@ const char *ToxHandler::add_friend_err_enum2text(TOX_ERR_FRIEND_ADD err)
 
 void update_savedata_file(void)
 {
-    if (!(savedata_filename && savedata_tmp_filename))
+    if (!(savedata_filename_ && savedata_tmp_filename_))
         return;
 
     size_t size = tox_get_savedata_size(tox);
     char *savedata = (char *)malloc(size);
     tox_get_savedata(tox, (uint8_t *)savedata);
 
-    FILE *f = fopen(savedata_tmp_filename, "wb");
+    FILE *f = fopen(savedata_tmp_filename_, "wb");
     fwrite(savedata, size, 1, f);
     fclose(f);
 
-    rename(savedata_tmp_filename, savedata_filename);
+    rename(savedata_tmp_filename_, savedata_filename_);
 
     free(savedata);
 }
 
 std::string ls_files()
 {
-    constexpr std::string_view path = "shared";
     std::string names;
+
+    std::string_view path = "shared";
+    
     for (const auto &entry : fs::directory_iterator(path))
     {
         std::string file = entry.path();
@@ -177,10 +171,10 @@ void download_files(std::vector<std::string> files, uint32_t friend_num)
             continue;
         }
 
-        ToxFile tox_file{file, file_num, friend_num, f, ToxFile::SENDING};
+        ToxFile tox_file{file, file_num, friend_num, f, ToxFile::FileDirection::SENDING};
         tox_file_get_file_id(tox, friend_num, file_num, tox_file.file_id_, nullptr);
 
-        mFiles[file_num] = tox_file;
+        files_[file_num] = tox_file;
     }
 }
 
@@ -192,7 +186,7 @@ void download_files(std::vector<std::string> files, uint32_t friend_num)
 
 void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, const uint8_t *message, size_t length, void *user_data)
 {
-    Friend *f = getfriend(friend_num);
+    Friend *f = get_friend(friend_num);
 
     if (!f)
         return;
@@ -243,16 +237,16 @@ void file_recv_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint32
         return;
     }
 
-    ToxFile tox_file{std::make_shared<std::fstream>(), file_number, friend_number, std::string((char *)filename), ToxFile::RECEIVING};
+    ToxFile tox_file{std::make_shared<std::fstream>(), file_number, friend_number, std::string((char *)filename), ToxFile::FileDirection::RECEIVING};
     tox_file_get_file_id(tox, friend_number, file_number, tox_file.file_id_, nullptr);
 
-    mFiles[file_number] = tox_file;
+    files_[file_number] = tox_file;
 }
 
 // mandar chunks
 void file_chunk_request_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint64_t position, size_t length, void *user_data)
 {
-    auto file = mFiles[file_number];
+    auto file = files_[file_number];
     if (!file.file_)
     {
         log("There isn't a file");
@@ -262,7 +256,7 @@ void file_chunk_request_cb(Tox *tox, uint32_t friend_number, uint32_t file_numbe
 
     if (!length)
     {
-        file.status_ = ToxFile::FINISHED;
+        file.status_ = ToxFile::FileStatus::FINISHED;
         file.file_->close();
         return;
     }
@@ -292,11 +286,11 @@ void file_chunk_request_cb(Tox *tox, uint32_t friend_number, uint32_t file_numbe
 // receber chunks
 void file_recv_chunk_cb(Tox *tox, uint32_t friend_number, uint32_t file_number, uint64_t position, const uint8_t *data, size_t length, void *user_data)
 {
-    auto file = mFiles[file_number];
+    auto file = files_[file_number];
 
     if (!length)
     {
-        file.status_ = ToxFile::FINISHED;
+        file.status_ = ToxFile::FileStatus::FINISHED;
         file.file_->close();
         return;
     }
@@ -322,7 +316,7 @@ void file_recv_control_cb(Tox *tox, uint32_t friend_number, uint32_t file_number
 
 void friend_name_cb(Tox *tox, uint32_t friend_num, const uint8_t *name, size_t length, void *user_data)
 {
-    Friend *f = getfriend(friend_num);
+    Friend *f = get_friend(friend_num);
 
     if (f)
     {
@@ -334,7 +328,7 @@ void friend_name_cb(Tox *tox, uint32_t friend_num, const uint8_t *name, size_t l
 
 void friend_status_message_cb(Tox *tox, uint32_t friend_num, const uint8_t *message, size_t length, void *user_data)
 {
-    Friend *f = getfriend(friend_num);
+    Friend *f = get_friend(friend_num);
     if (f)
     {
         f->status_message_ = (char *)realloc(f->status_message_, length + 1);
@@ -345,7 +339,7 @@ void friend_status_message_cb(Tox *tox, uint32_t friend_num, const uint8_t *mess
 
 void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION connection_status, void *user_data)
 {
-    Friend *f = getfriend(friend_num);
+    Friend *f = get_friend(friend_num);
     if (f)
     {
         f->connection_ = connection_status;
@@ -357,13 +351,13 @@ void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *messa
 {
     Request req;
 
-    req.id_ = 1 + (mRequests.size() ? mRequests.at(mRequests.size() - 1).id_ : 0);
+    req.id_ = 1 + (requests_.size() ? requests_.at(requests_.size() - 1).id_ : 0);
     req.is_friend_request_ = true;
     memcpy(req.user_data_.public_key, public_key, TOX_PUBLIC_KEY_SIZE);
     req.msg_ = (char *)malloc(length + 1);
     sprintf(req.msg_, "%.*s", (int)length, (char *)message);
 
-    mRequests.push_back(req);
+    requests_.push_back(req);
     iface_update_cb();
 }
 
@@ -403,22 +397,16 @@ void ToxHandler::create_tox()
 {
     struct Tox_Options options;
     tox_options_default(&options);
-    // tox_options_set_start_port(&options, PORT_RANGE_START);
-    // tox_options_set_end_port(&options, PORT_RANGE_END);
     tox_options_set_log_callback(&options, log_callback);
     tox_options_set_udp_enabled(&options, true);
-
     tox_options_set_proxy_type(&options, TOX_PROXY_TYPE_NONE);
-    //tox_options_set_experimental_thread_safety(&options, true);
     tox_options_set_hole_punching_enabled(&options, true);
-    //tox_options_set_proxy_host(&options, (char *)settings.proxy_ip);
-    //tox_options_set_proxy_port(&options, settings.proxy_port);
 
     TOX_ERR_NEW err_new;
 
-    if (savedata_filename)
+    if (savedata_filename_)
     {
-        FILE *f = fopen(savedata_filename, "rb");
+        FILE *f = fopen(savedata_filename_, "rb");
         if (f)
         {
             fseek(f, 0, SEEK_END);
@@ -512,18 +500,18 @@ void ToxHandler::init_friends()
 
 void ToxHandler::update_savedata_file()
 {
-    if (!(savedata_filename && savedata_tmp_filename))
+    if (!(savedata_filename_ && savedata_tmp_filename_))
         return;
 
     size_t size = tox_get_savedata_size(tox);
     char *savedata = (char *)malloc(size);
     tox_get_savedata(tox, (uint8_t *)savedata);
 
-    FILE *f = fopen(savedata_tmp_filename, "wb");
+    FILE *f = fopen(savedata_tmp_filename_, "wb");
     fwrite(savedata, size, 1, f);
     fclose(f);
 
-    rename(savedata_tmp_filename, savedata_filename);
+    rename(savedata_tmp_filename_, savedata_filename_);
 
     free(savedata);
 }
@@ -606,7 +594,7 @@ void ToxHandler::set_status_message(const std::string &str)
 
 std::vector<Request> ToxHandler::get_requests()
 {
-    return mRequests;
+    return requests_;
 }
 
 std::vector<Friend *> &ToxHandler::get_friends()
@@ -616,7 +604,7 @@ std::vector<Friend *> &ToxHandler::get_friends()
 
 Friend *ToxHandler::get_friend(uint32_t fNum)
 {
-    return getfriend(fNum);
+    return get_friend(fNum);
 }
 
 void ToxHandler::send_message(uint32_t fNum, const std::string &msg, bool add_to_msg)
@@ -675,7 +663,7 @@ std::string ToxHandler::get_self_status()
 void iterate_tox()
 {
     uint32_t tmp;
-    while (is_running)
+    while (is_running_)
     {
         tox_iterate(tox, nullptr);
         tmp = tox_iteration_interval(tox);
@@ -718,13 +706,13 @@ ToxHandler::ToxHandler()
     {
         set_name("Toxer");
     }
-    is_running = true;
+    is_running_ = true;
     m_tox_thread_ = new std::thread(iterate_tox);
 }
 
 ToxHandler::~ToxHandler()
 {
-    is_running = false;
+    is_running_ = false;
     m_tox_thread_->join();
     delete m_tox_thread_;
 }

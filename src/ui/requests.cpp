@@ -30,7 +30,7 @@ namespace ui
 
     void Requests::draw_list()
     {
-        auto requests = t_hand_->get_requests();
+        auto requests = ToxHandler::get().get_requests();
 
         if (requests.empty())
             mvwprintw(win, 2, SPACE_LEFT, "You have no requests!");
@@ -48,7 +48,7 @@ namespace ui
 
     void Requests::draw_request()
     {
-        auto requests = t_hand_->get_requests();
+        auto requests = ToxHandler::get().get_requests();
         auto r = requests[selected_request_];
 
         mvwprintw(win, 3, SPACE_LEFT, "Request from: %s", r.get_pub_key().c_str());
@@ -86,7 +86,7 @@ namespace ui
             if (selected_request_ > 0)
                 --selected_request_;
             else
-                selected_request_ = t_hand_->get_requests().size();
+                selected_request_ = ToxHandler::get().get_requests().size();
         }
     }
 
@@ -94,7 +94,7 @@ namespace ui
     {
         if (state_ == State::LIST)
         {
-            if (selected_request_ < t_hand_->get_requests().size())
+            if (selected_request_ < ToxHandler::get().get_requests().size())
                 ++selected_request_;
             else
                 selected_request_ = 0;
@@ -103,7 +103,7 @@ namespace ui
 
     void Requests::do_enter()
     {
-        auto requests = t_hand_->get_requests();
+        auto requests = ToxHandler::get().get_requests();
         switch (state_)
         {
         case State::LIST:
@@ -111,7 +111,7 @@ namespace ui
                 state_ = State::VIEWING_REQUEST;
             break;
         case State::VIEWING_REQUEST:
-            t_hand_->accept_request(requests[selected_request_]);
+            ToxHandler::get().accept_request(requests[selected_request_]);
             state_ = State::LIST;
             break;
 

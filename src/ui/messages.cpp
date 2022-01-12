@@ -30,7 +30,7 @@ namespace ui
 
     void Messages::draw_messages()
     {
-        auto msgs = t_hand_->get_messages(talking_to_->friend_num_);
+        auto msgs = ToxHandler::get().get_messages(talking_to_->friend_num_);
         std::string tmp = "message: " + typing_;
         int msgLines = tmp.size() / (get_width() - 2) + 1;
 
@@ -103,7 +103,7 @@ namespace ui
     {
         if (typing_.size() && talking_to_ != nullptr)
         {
-            t_hand_->send_message(talking_to_->friend_num_, typing_);
+            ToxHandler::get().send_message(talking_to_->friend_num_, typing_);
             typing_ = "";
         }
     }
