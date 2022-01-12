@@ -7,7 +7,7 @@ constexpr int KEY_DELETE{127};
 
 namespace ui
 {
-    Friends::Friends() : BaseWindow("Friends")
+    Friends::Friends() : Window("Friends")
     {
     }
 
@@ -147,7 +147,7 @@ namespace ui
             }
             else
             {
-                talking_to_ = ToxHandler::get().get_friends()[selected_friend_ - 1];
+                ui::WindowInfo::get().talking_to_ =  ToxHandler::get().get_friends()[selected_friend_ - 1];
             }
             break;
 

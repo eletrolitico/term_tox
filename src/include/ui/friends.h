@@ -5,7 +5,7 @@
 
 namespace ui
 {
-    class Friends : public BaseWindow
+    class Friends : public Window
     {
     public:
         Friends();

@@ -5,7 +5,7 @@
 
 namespace ui
 {
-    class Requests : public BaseWindow
+    class Requests : public Window
     {
     public:
         Requests();

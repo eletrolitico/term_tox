@@ -5,7 +5,7 @@
 
 namespace ui
 {
-    class StatusBar : public BaseWindow
+    class StatusBar : public Window
     {
     public:
         StatusBar(int x_max, int height, int start_y);

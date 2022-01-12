@@ -4,26 +4,27 @@
 #include <ncurses.h>
 #include <string>
 #include "tox_handler.h"
+#include "window_info.h"
 
 namespace ui
 {
-    class BaseWindow
+    class Window
     {
     public:
-        BaseWindow(const std::string &title) : title_(title)
+        Window(const std::string &title) : title_(title)
         {
-            win = newwin(height_, x_max_ - 2, start_y_, 1);
+            win = newwin(get_height(), get_x_max() - 2, get_start_y(), 1);
             box(win, 0, 0);
         }
 
-        BaseWindow(const std::string &title, int x_max, int height, int start_y)
+        Window(const std::string &title, int x_max, int height, int start_y)
             : title_(title), cust_x_max_(x_max), cust_height_(height), cust_start_y_(start_y), has_cust_dims(true)
         {
             win = newwin(height, x_max - 2, start_y, 1);
             box(win, 0, 0);
         }
 
-        virtual ~BaseWindow() {}
+        virtual ~Window() {}
 
         virtual void draw()
         {
@@ -41,11 +42,22 @@ namespace ui
             return title_;
         }
 
-        inline static void set_dimensions(int x_max, int height, int start_y)
+        inline int get_x_max() const
         {
-            x_max_ = x_max;
-            height_ = height;
-            start_y_ = start_y;
+            return ui::WindowInfo::get().x_max_;
+        }
+
+        inline int get_height() const
+        {
+            if (has_cust_dims)
+                return cust_height_;
+            else
+                return ui::WindowInfo::get().height_;
+        }
+
+        inline int get_start_y() const
+        {
+            return ui::WindowInfo::get().start_y_;
         }
 
         inline int get_width()
@@ -53,30 +65,22 @@ namespace ui
             if (has_cust_dims)
                 return cust_x_max_ - 4;
             else
-                return x_max_ - 4;
-        }
-
-        inline int get_height()
-        {
-            if (has_cust_dims)
-                return cust_height_;
-            else
-                return height_;
+                return get_x_max() - 4;
         }
 
         virtual void on_focus() {}
         virtual void on_blur() {}
 
     protected:
-        static Friend *talking_to_;
         WINDOW *win;
 
     private:
         std::string title_;
-        static int x_max_, height_, start_y_;
         int cust_x_max_, cust_height_, cust_start_y_;
         bool has_cust_dims = false;
     };
 }
+
+
 
 #endif

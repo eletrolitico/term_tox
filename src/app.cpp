@@ -12,11 +12,6 @@
 #include "ui/screen.h"
 #include "tox_handler.h"
 
-int ui::BaseWindow::x_max_, ui::BaseWindow::height_, ui::BaseWindow::start_y_;
-Friend *ui::BaseWindow::talking_to_ = nullptr;
-
-//void draw_stuff() { screen.update('\0'); }
-
 inline void start_program()
 {
     ui::Screen::get().update(0);

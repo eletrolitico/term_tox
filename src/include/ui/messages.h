@@ -5,7 +5,7 @@
 
 namespace ui
 {
-    class Messages : public BaseWindow
+    class Messages : public Window
     {
     public:
         Messages();

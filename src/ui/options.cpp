@@ -7,7 +7,7 @@ constexpr int KEY_DELETE{127};
 
 namespace ui
 {
-    Options::Options() : BaseWindow("Options")
+    Options::Options() : Window("Options")
     {
     }
 

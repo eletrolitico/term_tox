@@ -7,7 +7,7 @@ constexpr int KEY_DELETE{127};
 
 namespace ui
 {
-    Messages::Messages() : BaseWindow("Messages")
+    Messages::Messages() : Window("Messages")
     {
     }
 
@@ -16,7 +16,7 @@ namespace ui
         werase(win);
         box(win, 0, 0);
 
-        if (talking_to_ == nullptr)
+        if (ui::WindowInfo::get().talking_to_ == nullptr)
         {
             draw_no_friend();
         }
@@ -30,7 +30,7 @@ namespace ui
 
     void Messages::draw_messages()
     {
-        auto msgs = ToxHandler::get().get_messages(talking_to_->friend_num_);
+        auto msgs = ToxHandler::get().get_messages(ui::WindowInfo::get().talking_to_->friend_num_);
         std::string tmp = "message: " + typing_;
         int msgLines = tmp.size() / (get_width() - 2) + 1;
 
@@ -38,7 +38,7 @@ namespace ui
 
         for (auto msg : msgs | std::views::reverse)
         {
-            auto prefix = msg.first == MESSAGE::SENT ? "Voce: " : std::string(talking_to_->name_) + ": ";
+            auto prefix = msg.first == MESSAGE::SENT ? "Voce: " : std::string(ui::WindowInfo::get().talking_to_->name_) + ": ";
             msgPos -= draw_line_with_break(msgPos, 2, get_width() - 2, prefix + msg.second) + 1;
             if (msgPos <= 1)
                 break;
@@ -101,9 +101,9 @@ namespace ui
 
     void Messages::do_enter()
     {
-        if (typing_.size() && talking_to_ != nullptr)
+        if (typing_.size() && ui::WindowInfo::get().talking_to_ != nullptr)
         {
-            ToxHandler::get().send_message(talking_to_->friend_num_, typing_);
+            ToxHandler::get().send_message(ui::WindowInfo::get().talking_to_->friend_num_, typing_);
             typing_ = "";
         }
     }
@@ -122,4 +122,4 @@ namespace ui
 
         return lines;
     }
-} // namespace ui
+} 

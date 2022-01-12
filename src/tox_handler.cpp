@@ -1,5 +1,7 @@
 #include "include/tox_handler.h"
 #include "include/utils.h"
+#include "include/tox_nodes.h"
+#include "ui/screen.h"
 
 #include <string.h>
 #include <sstream>
@@ -9,7 +11,6 @@
 #include <filesystem>
 #include <sodium.h>
 #include <unordered_map>
-#include "include/tox_nodes.h"
 
 #define COUNTOF(x) (sizeof(x) / sizeof(*(x)))
 
@@ -36,20 +37,19 @@ void (*iface_update_cb)();
  *
  ******************************************************************************/
 
-Friend *get_friend(uint32_t fid)
+Friend *get_friend(uint32_t friend_num)
 {
-    for (Friend *fnd : friends)
-        if (fnd->friend_num_ == fid)
-        {
-            return fnd;
-            break;
-        }
+    for (Friend *f : friends)
+    {
+        if (f->friend_num_ == friend_num)
+            return f;
+    }
     return nullptr;
 }
 
-const char *ToxHandler::connection_enum2text(TOX_CONNECTION conn)
+const char *ToxHandler::connection_enum2text(TOX_CONNECTION connection)
 {
-    switch (conn)
+    switch (connection)
     {
     case TOX_CONNECTION_NONE:
         return "Offline";
@@ -126,10 +126,10 @@ std::string ls_files()
     {
         std::string file = entry.path();
         names += file.substr(path.size() + 1);
+        
         if (entry.is_directory())
-        {
             names += "/";
-        }
+
         names += ' ';
     }
     return names;
@@ -222,8 +222,8 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
     {
         f->hist_.push_back(msg);
         messages_[friend_num].push_back({MESSAGE::RECEIVED, msg});
-
-        iface_update_cb();
+        
+        ui::Screen::get().update('\0');
     }
 }
 
@@ -323,7 +323,7 @@ void friend_name_cb(Tox *tox, uint32_t friend_num, const uint8_t *name, size_t l
         f->name_ = (char *)realloc(f->name_, length + 1);
         sprintf(f->name_, "%.*s", (int)length, (char *)name);
     }
-    iface_update_cb();
+    ui::Screen::get().update('\0');
 }
 
 void friend_status_message_cb(Tox *tox, uint32_t friend_num, const uint8_t *message, size_t length, void *user_data)
@@ -334,7 +334,7 @@ void friend_status_message_cb(Tox *tox, uint32_t friend_num, const uint8_t *mess
         f->status_message_ = (char *)realloc(f->status_message_, length + 1);
         sprintf(f->status_message_, "%.*s", (int)length, (char *)message);
     }
-    iface_update_cb();
+    ui::Screen::get().update('\0');
 }
 
 void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION connection_status, void *user_data)
@@ -344,7 +344,7 @@ void friend_connection_status_cb(Tox *tox, uint32_t friend_num, TOX_CONNECTION c
     {
         f->connection_ = connection_status;
     }
-    iface_update_cb();
+    ui::Screen::get().update('\0');
 }
 
 void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *message, size_t length, void *user_data)
@@ -358,14 +358,14 @@ void friend_request_cb(Tox *tox, const uint8_t *public_key, const uint8_t *messa
     sprintf(req.msg_, "%.*s", (int)length, (char *)message);
 
     requests_.push_back(req);
-    iface_update_cb();
+    ui::Screen::get().update('\0');
 }
 
 void self_connection_status_cb(Tox *tox, TOX_CONNECTION connection_status, void *user_data)
 {
     self_.connection_ = connection_status;
     log("[INFO]: Fiquei online");
-    iface_update_cb();
+    ui::Screen::get().update('\0');
 }
 
 const char *log_level[5] = {
@@ -734,11 +734,6 @@ std::string Request::get_pub_key()
 uint32_t ToxHandler::get_avg_tox_sleep_time()
 {
     return avg_tox_sleep_time_;
-}
-
-void ToxHandler::set_update_callback(void (*update_cb)())
-{
-    iface_update_cb = update_cb;
 }
 
 std::vector<std::pair<MESSAGE, std::string>> ToxHandler::get_messages(uint32_t fNUm)

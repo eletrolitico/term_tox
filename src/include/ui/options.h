@@ -5,7 +5,7 @@
 
 namespace ui
 {
-    class Options : public BaseWindow
+    class Options : public Window
     {
     public:
         Options();

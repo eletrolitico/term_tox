@@ -2,7 +2,7 @@
 
 namespace ui
 {
-    StatusBar::StatusBar(int x_max, int height, int start_y) : BaseWindow("", x_max, height, start_y)
+    StatusBar::StatusBar(int x_max, int height, int start_y) : Window("", x_max, height, start_y)
     {
     }
 
@@ -10,9 +10,9 @@ namespace ui
     {
         std::string tk_to = "no one";
 
-        if (talking_to_ != nullptr)
+        if (ui::WindowInfo::get().talking_to_ != nullptr)
         {
-            tk_to = std::string(talking_to_->name_);
+            tk_to = std::string(ui::WindowInfo::get().talking_to_->name_);
         }
 
         werase(win);

@@ -4,11 +4,17 @@ namespace ui
 {
     Menu::Menu(int x_max, int h) : height_(h), width_(x_max - 2)
     {
-        win_ = std::shared_ptr<WINDOW>(newwin(3, x_max - 2, 1, 1));
+        win_ = newwin(3, x_max - 2, 1, 1);
         draw();
     }
 
-    BaseWindow* Menu::get_selected_window(int key)
+    Menu::~Menu()
+    {
+        for(auto x : windows_)
+            delete x;
+    }
+
+    Window* Menu::get_selected_window(int key)
     {
         switch (key)
         {
@@ -34,34 +40,36 @@ namespace ui
 
     void Menu::draw()
     {
-        box(win_.get(), 0, 0);
+        box(win_, 0, 0);
 
         for (size_t i = 0; i < windows_.size(); ++i)
         {
             if (i == selected_)
-                wattr_on(win_.get(), A_STANDOUT, nullptr);
+                wattr_on(win_, A_STANDOUT, nullptr);
             if (i == 0)
-                mvwprintw(win_.get(), height_ / 2, 2, "%s", windows_[0]->getTitle().c_str());
+                mvwprintw(win_, height_ / 2, 2, "%s", windows_[0]->getTitle().c_str());
             else
-                wprintw(win_.get(), "%s", windows_[i]->getTitle().c_str());
+                wprintw(win_, "%s", windows_[i]->getTitle().c_str());
             if (i == selected_)
-                wattr_off(win_.get(), A_STANDOUT, nullptr);
+                wattr_off(win_, A_STANDOUT, nullptr);
 
             if (i < windows_.size() - 1)
-                waddch(win_.get(), ' ');
+                waddch(win_, ' ');
         }
 
-        wrefresh(win_.get());
+        wrefresh(win_);
     }
 
-    void Menu::add_window(BaseWindow* window)
+    void Menu::add_window(Window* window)
     {
         windows_.push_back(window);
     }
 
-    BaseWindow* Menu::get_window(size_t pos)
+    Window* Menu::get_window(size_t pos)
     {
         return windows_[pos];
     }
+
+    
 }
 

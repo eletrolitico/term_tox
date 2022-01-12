@@ -6,7 +6,7 @@ constexpr int KEY_ESCAPE{27};
 
 namespace ui
 {
-    Requests::Requests() : BaseWindow("Requests")
+    Requests::Requests() : Window("Requests")
     {
     }
 

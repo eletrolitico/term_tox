@@ -44,15 +44,12 @@ namespace ui
 
         refresh();
 
-        BaseWindow::set_dimensions(x_max, y_max - 8, 8);
+        ui::WindowInfo::get().x_max_ = x_max;
+        ui::WindowInfo::get().height_ = y_max - 8;
+        ui::WindowInfo::get().start_y_ = 8;
         
         //Start menu
         menu_ = std::make_unique<Menu>(x_max, 3);
-
-        // menu_->add_window(std::make_shared<Friends>());
-        // menu_->add_window(std::make_shared<Requests>());
-        // menu_->add_window(std::make_shared<Messages>());
-        // menu_->add_window(std::make_shared<Options>());
 
         menu_->add_window(new Friends());
         menu_->add_window(new Requests());
@@ -69,7 +66,7 @@ namespace ui
 
     void Screen::update(int ch)
     {
-        BaseWindow* sel = menu_->get_selected_window(ch);
+        Window* sel = menu_->get_selected_window(ch);
         menu_->draw();
 
         sel->update(ch);
