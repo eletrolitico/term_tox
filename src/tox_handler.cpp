@@ -121,12 +121,12 @@ std::string ls_files()
     std::string names;
 
     std::string_view path = "shared";
-    
+
     for (const auto &entry : fs::directory_iterator(path))
     {
         std::string file = entry.path();
         names += file.substr(path.size() + 1);
-        
+
         if (entry.is_directory())
             names += "/";
 
@@ -191,15 +191,16 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
     if (!f)
         return;
 
-    if (type != TOX_MESSAGE_TYPE_NORMAL)
-    {
-        log("* receive MESSAGE ACTION type from  no supported");
-        return;
-    }
-
     std::string msg = std::string((char *)message);
 
-    if (msg.starts_with("cmd:"))
+    if (type == TOX_MESSAGE_TYPE_NORMAL)
+    {
+        f->hist_.push_back(msg);
+        messages_[friend_num].push_back({MESSAGE::RECEIVED, msg});
+
+        ui::Screen::get().update('\0');
+    }
+    else
     {
         constexpr std::string_view dlCmd = "download ";
 
@@ -217,13 +218,6 @@ void friend_message_cb(Tox *tox, uint32_t friend_num, TOX_MESSAGE_TYPE type, con
         {
             download_files(tokenize(cmd.substr(dlCmd.size())), friend_num);
         }
-    }
-    else
-    {
-        f->hist_.push_back(msg);
-        messages_[friend_num].push_back({MESSAGE::RECEIVED, msg});
-        
-        ui::Screen::get().update('\0');
     }
 }
 
@@ -610,7 +604,9 @@ Friend *ToxHandler::get_friend(uint32_t fNum)
 void ToxHandler::send_message(uint32_t fNum, const std::string &msg, bool add_to_msg)
 {
     TOX_ERR_FRIEND_SEND_MESSAGE err;
-    tox_friend_send_message(tox, fNum, TOX_MESSAGE_TYPE_NORMAL, (uint8_t *)msg.c_str(), msg.length(), &err);
+    TOX_MESSAGE_TYPE type = msg.starts_with("cmd:") ? TOX_MESSAGE_TYPE_ACTION : TOX_MESSAGE_TYPE_NORMAL;
+
+    tox_friend_send_message(tox, fNum, type, (uint8_t *)msg.c_str(), msg.length(), &err);
     if (err != TOX_ERR_FRIEND_SEND_MESSAGE_OK)
     {
         log("Erro ao mandar msg: " + std::to_string(err));
